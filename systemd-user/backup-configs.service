@@ -1,0 +1,6 @@
+[Unit]
+Description=Backup configs to GitHub
+
+[Service]
+Type=oneshot
+ExecStart=/home/yb-m/.local/bin/backup-configs.sh
