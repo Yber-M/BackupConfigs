@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=WhatsApp Business
+Exec=microsoft-edge-stable --app=https://web.whatsapp.com --user-data-dir=/home/yb-m/.config/edge-whatsapp-business --class=WhatsAppBusiness
+Terminal=false
+Type=Application
+Icon=/home/yb-m/.local/share/icons/whatsapp-b.png
+Categories=Network;
+StartupWMClass=WhatsAppBusiness
