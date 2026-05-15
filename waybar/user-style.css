@@ -1,0 +1,10 @@
+/* User custom styles */
+* {
+    font-size: 12px;
+    font-family: "JetBrainsMono Nerd Font";
+}
+
+#clock {
+    font-size: 15px;
+    font-weight: bold;
+}
