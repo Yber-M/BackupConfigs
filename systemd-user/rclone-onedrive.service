@@ -1,0 +1,18 @@
+[Unit]
+Description=Rclone OneDrive Mount
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/rclone mount onedrive: /home/yb-m/OneDrive \
+  --vfs-cache-mode writes \
+  --vfs-read-chunk-size 32M \
+  --vfs-read-chunk-size-limit off \
+  --dir-cache-time 24h \
+  --poll-interval 1m \
+  --allow-other \
+  --umask 000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target
