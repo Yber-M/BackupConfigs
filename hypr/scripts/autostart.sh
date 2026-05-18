@@ -11,7 +11,6 @@ fi
 sleep 2
 
 pgrep -x copyq >/dev/null || copyq &
-pgrep -f "\.config/edge-whatsapp " >/dev/null || gtk-launch whatsapp &
-pgrep -f "\.config/edge-whatsapp-business" >/dev/null || gtk-launch whatsapp-business &
+pgrep -x ferdium >/dev/null || ferdium &
 pgrep -x vesktop >/dev/null || vesktop &
 pgrep -x Cider >/dev/null || cider &
