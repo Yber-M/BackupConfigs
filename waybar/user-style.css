@@ -8,3 +8,10 @@
     font-size: 15px;
     font-weight: bold;
 }
+
+#custom-cava {
+  color: #f5c2e7;
+  font-size: 13px;
+  padding: 0 10px;
+  margin: 0 6px;
+}
