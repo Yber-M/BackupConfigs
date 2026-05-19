@@ -45,6 +45,4 @@ p.write_text(s)
 PY
 
 # Reiniciar waybar una sola vez con el config ya parcheado
-pkill waybar
-sleep 1
-nohup waybar >/tmp/waybar.log 2>&1 &
+pkill -x waybar
