@@ -33,18 +33,18 @@
         "group/pill#center"
     ],
     "group/pill#center": {
-      "modules": [
-        "hyprland/workspaces",
-        "custom/cava",
-        "hyprland/window"
-    ],
-    "orientation": "inherit"
+        "modules": [
+            "hyprland/workspaces",
+            "custom/cava",
+            "hyprland/window"
+        ],
+        "orientation": "inherit"
     },
     "custom/cava": {
-       "exec": "/home/yb-m/.config/waybar/scripts/cava.sh",
-       "format": "{}",
-       "tooltip": false,
-       "restart-interval": 1
+    	"exec": "~/.config/waybar/scripts/cava.sh",
+	"format": "{}",
+	"tooltip": false,
+	"restart-interval": 1
     },
     "modules-right": [
         "group/pill#right1",
