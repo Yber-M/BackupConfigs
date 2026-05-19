@@ -11,21 +11,6 @@
         "$XDG_CONFIG_HOME/waybar/modules/*json*", 
         "$XDG_CONFIG_HOME/waybar/includes/includes.json" 
     ],
-    "custom/cpu": {
-        "exec": "top -bn1 | grep 'Cpu(s)' | awk '{print int($2)}'",
-        "interval": 2,
-        "format": "󰍛 {}%"
-    },
-    "custom/ram": {
-        "exec": "free -h | awk '/Mem:/ {print $3}'",
-        "interval": 3,
-        "format": "󰘚 {}"
-    },
-    "custom/disk": {
-        "exec": "df -h / | awk 'NR==2 {print $3\"/\"$2}'",
-        "interval": 30,
-        "format": "󰋊 {}"
-    },
     "modules-left": [
         "group/pill#left1",
         "group/pill#left2"
@@ -33,10 +18,27 @@
     "group/pill#left1": {
         "orientation": "inherit",
         "modules": [
-            "custom/cpu",
-            "custom/ram",
-            "custom/disk"
+    	   "custom/cpu",
+           "custom/ram",
+ 	       "custom/disk"
         ]
+    },
+    "custom/cpu": {
+        "exec": "top -bn1 | grep 'Cpu(s)' | awk '{print int($2)}'",
+        "interval": 2,
+        "format": "󰍛 {}%"
+    },
+
+    "custom/ram": {
+        "exec": "free -h | awk '/Mem:/ {print $3}'",
+        "interval": 3,
+        "format": "󰘚 {}"
+    },
+
+    "custom/disk": {
+        "exec": "df -h / | awk 'NR==2 {print $3\"/\"$2}'",
+        "interval": 30,
+        "format": "󰋊 {}"
     },
     "group/pill#left2": {
         "orientation": "inherit",
@@ -56,6 +58,7 @@
         ],
         "orientation": "inherit"
     },
+
     "custom/cava": {
         "exec": "/home/yb-m/.config/waybar/scripts/cava.sh",
         "format": "{}",
@@ -64,6 +67,7 @@
         "restart-interval": 1,
         "on-click": "/home/yb-m/.config/eww/scripts/toggle-media.sh"
     },
+
     "modules-right": [
         "group/pill#right1",
         "group/pill#right2",
