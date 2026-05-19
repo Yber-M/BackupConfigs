@@ -5,7 +5,7 @@
 }
 
 #clock {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: bold;
 }
 
@@ -16,4 +16,13 @@
   margin: 0 2px;
   letter-spacing: -2px;
   min-width: 90px;
+}
+
+#custom-cpu,
+#custom-ram,
+#custom-disk {
+    color: #c7c7df;
+    font-weight: bold;
+    padding: 0 6px;
+    font-size: 14px;
 }

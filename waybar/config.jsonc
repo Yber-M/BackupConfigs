@@ -18,9 +18,27 @@
     "group/pill#left1": {
         "orientation": "inherit",
         "modules": [
-            "cpu",
-            "memory"
+    	   "custom/cpu",
+           "custom/ram",
+ 	       "custom/disk"
         ]
+    },
+    "custom/cpu": {
+        "exec": "top -bn1 | grep 'Cpu(s)' | awk '{print int($2)}'",
+        "interval": 2,
+        "format": "󰍛 {}%"
+    },
+
+    "custom/ram": {
+        "exec": "free -h | awk '/Mem:/ {print $3}'",
+        "interval": 3,
+        "format": "󰘚 {}"
+    },
+
+    "custom/disk": {
+        "exec": "df -h / | awk 'NR==2 {print $3\"/\"$2}'",
+        "interval": 30,
+        "format": "󰋊 {}"
     },
     "group/pill#left2": {
         "orientation": "inherit",
