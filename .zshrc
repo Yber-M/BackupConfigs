@@ -18,3 +18,7 @@ source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 
 # Atuin
 eval "$(atuin init zsh)"
+
+eval "$(ssh-agent -s)" >/dev/null
+
+ssh-add ~/.ssh/id_ed25519 2>/dev/null
