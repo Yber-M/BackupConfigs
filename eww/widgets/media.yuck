@@ -1,0 +1,25 @@
+(defpoll media :interval "1ms" "~/.config/eww/scripts/media-info.sh")
+
+(defwidget media-widget []
+  (box :class "music-card" :orientation "horizontal" :spacing 0
+
+    (box :class "cover-box" :halign "center" :valign "center"
+      :style "background-image: url('${media.art_rot_css}');")
+
+    (box :class "music-info" :orientation "vertical"
+      (label :class "song-title" :limit-width 20 :text "${media.title_display}")
+      (label :class "song-artist" :limit-width 20 :text "${media.artist_display}")
+
+      (scale :class "progress"
+        :min 0
+        :max 100
+        :value "${media.percent}")
+
+      (box :class "time-row" :orientation "horizontal"
+        (label :hexpand true :halign "start" :text "${media.pos}")
+        (label :halign "end" :text "${media.len}"))
+
+      (box :class "controls" :orientation "horizontal"
+        (button :onclick "playerctl previous" "󰒮")
+        (button :onclick "playerctl play-pause" "󰐎")
+        (button :onclick "playerctl next" "󰒭")))))
