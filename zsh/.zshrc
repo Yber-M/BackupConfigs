@@ -41,3 +41,7 @@ alias fastfetch='fastfetch --logo-type kitty'
 export EDITOR=code
 
 # unset -f command_not_found_handler # Uncomment to prevent searching for commands not found in package manager
+
+export NVM_DIR="$HOME/.config/nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
