@@ -5,13 +5,18 @@ After=network-online.target
 [Service]
 ExecStart=/usr/bin/rclone mount onedrive: /home/yb-m/OneDrive \
   --vfs-cache-mode full \
-  --vfs-cache-max-size 2G \
-  --vfs-cache-max-age 1h \
-  --buffer-size 64M \
-  --dir-cache-time 24h \
-  --poll-interval 1m \
+  --vfs-cache-max-size 30G \
+  --vfs-cache-max-age 24h \
+  --buffer-size 128M \
+  --dir-cache-time 72h \
+  --poll-interval 10m \
+  --attr-timeout 10m \
+  --daemon-timeout 10m \
+  --timeout 1m \
+  --exclude 'Almacén personal/**' \
   --allow-other \
   --umask 000
+
 Restart=always
 RestartSec=10
 
