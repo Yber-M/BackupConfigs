@@ -11,6 +11,21 @@
         "$XDG_CONFIG_HOME/waybar/modules/*json*", 
         "$XDG_CONFIG_HOME/waybar/includes/includes.json" 
     ],
+    "custom/cpu": {
+        "exec": "top -bn1 | grep 'Cpu(s)' | awk '{print int($2)}'",
+        "interval": 2,
+        "format": "󰍛 {}%"
+    },
+    "custom/ram": {
+        "exec": "free -h | awk '/Mem:/ {print $3}'",
+        "interval": 3,
+        "format": "󰘚 {}"
+    },
+    "custom/disk": {
+        "exec": "df -h / | awk 'NR==2 {print $3\"/\"$2}'",
+        "interval": 30,
+        "format": "󰋊 {}"
+    },
     "modules-left": [
         "group/pill#left1",
         "group/pill#left2"
@@ -18,8 +33,9 @@
     "group/pill#left1": {
         "orientation": "inherit",
         "modules": [
-            "cpu",
-            "memory"
+            "custom/cpu",
+            "custom/ram",
+            "custom/disk"
         ]
     },
     "group/pill#left2": {
@@ -35,9 +51,18 @@
     "group/pill#center": {
         "modules": [
             "hyprland/workspaces",
+            "custom/cava",
             "hyprland/window"
         ],
         "orientation": "inherit"
+    },
+    "custom/cava": {
+        "exec": "/home/yb-m/.config/waybar/scripts/cava.sh",
+        "format": "{}",
+        "return-type": "json",
+        "tooltip": false,
+        "restart-interval": 1,
+        "on-click": "/home/yb-m/.config/eww/scripts/toggle-media.sh"
     },
     "modules-right": [
         "group/pill#right1",
