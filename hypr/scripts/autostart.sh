@@ -15,4 +15,4 @@ sleep 2
 pgrep -x copyq >/dev/null || copyq &
 pgrep -x ferdium >/dev/null || ferdium &
 pgrep -fi "discord" >/dev/null || discord &
-pgrep -x Cider >/dev/null || cider &
+pgrep -x cider >/dev/null || cider &
