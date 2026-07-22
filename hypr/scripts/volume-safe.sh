@@ -18,4 +18,4 @@ esac
 VOL=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{printf "%.0f", $2 * 100}')
 SINK=$(wpctl inspect @DEFAULT_AUDIO_SINK@ | grep -oP 'node.description = "\K[^"]+' | head -1)
 
-notify-send -a "HyDE Notify" -r 8 -t 900 "${VOL}%" "$SINK"
+#notify-send -a "HyDE Notify" -r 8 -t 900 "${VOL}%" "$SINK"
