@@ -2,4 +2,4 @@
 *.log
 tmp/
 node_modules/
-dist/
+dist/copyq/
