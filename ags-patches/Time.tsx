@@ -3,6 +3,7 @@ import app from "ags/gtk4/app";
 import { Gtk } from "ags/gtk4";
 import { createState } from "ags";
 import { currentTimeString, currentDateShort } from "utils/time";
+import Separator from "./Separator.tsx";
 
 export default function Time() {
   const [revealPower, setRevealPower] = createState(false);
@@ -29,6 +30,7 @@ export default function Time() {
       }}
     >
       <label cssClasses={["clock"]} label={timeLabel} />
+      <Separator />
       <label cssClasses={["date"]} label={currentDateShort} />
       <revealer
         transitionType={Gtk.RevealerTransitionType.SLIDE_RIGHT}
