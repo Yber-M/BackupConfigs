@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOCK="/tmp/hypr-autostart.lock"
+LOCK="/tmp/hypr-autostart-${HYPRLAND_INSTANCE_SIGNATURE}.lock"
 
 exec 9>"$LOCK"
 flock -n 9 || exit 0
