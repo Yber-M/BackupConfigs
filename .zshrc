@@ -23,3 +23,5 @@ eval "$(ssh-agent -s)" >/dev/null
 
 ssh-add ~/.ssh/id_ed25519 2>/dev/null
 export BROWSER=microsoft-edge-stable
+
+alias reload-launcher='pkill -f "gjs -m"; sleep 1; nohup ags run >/dev/null 2>&1 & disown'
