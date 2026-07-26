@@ -3,22 +3,45 @@ import { Gtk } from "ags/gtk4";
 import Adw from "gi://Adw?version=1";
 import Gio from "gi://Gio?version=2.0";
 import { createBinding, With } from "ags";
+import { CavaDraw } from "widgets/music/modules/cava";
 import { firstActivePlayer } from "utils/mpris.ts";
 import options from "options.ts";
 
 function Cover({ player }) {
+  let measureBox: Gtk.Widget | null = null;
   return (
-    <box>
-      <Adw.Clamp maximumSize={40}>
-        <Gtk.Picture
-          cssClasses={["cover"]}
-          contentFit={Gtk.ContentFit.COVER}
-          file={createBinding(player, "coverArt").as((path) =>
-            Gio.file_new_for_path(path),
-          )}
-        />
-      </Adw.Clamp>
-    </box>
+    <overlay
+      $={(self) => {
+        if (measureBox) {
+          self.set_measure_overlay(measureBox, true);
+        }
+      }}
+    >
+      <box
+        cssClasses={["cava-container"]}
+        $type="overlay"
+        canTarget={false}
+        visible={options["bar.modules.media.cava.enable"]}
+      >
+        <CavaDraw vexpand hexpand style={"circular"} />
+      </box>
+      <box
+        $type="overlay"
+        $={(self) => {
+          measureBox = self;
+        }}
+      >
+        <Adw.Clamp maximumSize={40}>
+          <Gtk.Picture
+            cssClasses={["cover"]}
+            contentFit={Gtk.ContentFit.COVER}
+            file={createBinding(player, "coverArt").as((path) =>
+              Gio.file_new_for_path(path),
+            )}
+          />
+        </Adw.Clamp>
+      </box>
+    </overlay>
   );
 }
 
