@@ -1,3 +1,4 @@
+import { Gtk } from "ags/gtk4";
 import { isInhibited, toggleIdleInhibit } from "utils/idleInhibitor";
 
 export default function IdleInhibitor() {
@@ -13,7 +14,7 @@ export default function IdleInhibitor() {
       )}
       onClicked={() => toggleIdleInhibit()}
     >
-      <label label="coffee" cssClasses={["idle-icon"]} />
+      <label label="local_cafe" cssClasses={["idle-icon"]} valign={Gtk.Align.CENTER} />
     </button>
   );
 }

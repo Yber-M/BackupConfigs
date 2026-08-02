@@ -168,11 +168,18 @@
     color: $outline;
   }
 
+  .audio-status {
+    .audio-icon {
+      -gtk-icon-size: $font;
+    }
+  }
+
   .idle-inhibitor {
     .idle-icon {
-      @include material-icon($font);
+      @include material-icon(1.3rem);
       font-variation-settings: "FILL" 0;
       color: $outline;
+      line-height: 1;
     }
 
     &.active {
