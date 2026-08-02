@@ -2,7 +2,8 @@ import app from "ags/gtk4/app";
 import { Gtk } from "ags/gtk4";
 import Adw from "gi://Adw?version=1";
 import Gio from "gi://Gio?version=2.0";
-import { createBinding, With } from "ags";
+import GLib from "gi://GLib";
+import { createBinding, With, onCleanup } from "ags";
 import { CavaDraw } from "widgets/music/modules/cava";
 import { firstActivePlayer } from "utils/mpris.ts";
 import options from "options.ts";
@@ -46,14 +47,57 @@ function Cover({ player }) {
 }
 
 function Title({ player }) {
+  const label = createBinding(
+    player,
+    "metadata",
+  )(() => (player.title ? `${player.title} - ${player.artist}` : ""));
+
+  let sourceId: number | null = null;
+
+  onCleanup(() => {
+    if (sourceId !== null) {
+      GLib.source_remove(sourceId);
+      sourceId = null;
+    }
+  });
+
   return (
-    <label
-      cssClasses={["title", "module"]}
-      label={createBinding(
-        player,
-        "metadata",
-      )(() => player.title && `${player.artist} - ${player.title}`)}
-    />
+    <scrolledwindow
+      widthRequest={220}
+      hscrollbarPolicy={Gtk.PolicyType.NEVER}
+      vscrollbarPolicy={Gtk.PolicyType.NEVER}
+      overflow={Gtk.Overflow.HIDDEN}
+      $={(self) => {
+        const adj = self.get_hadjustment();
+        let direction = 1;
+        let pause = 20;
+
+        sourceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 50, () => {
+          const maxScroll = adj.get_upper() - adj.get_page_size();
+          if (maxScroll <= 0) return true;
+
+          if (pause > 0) {
+            pause--;
+            return true;
+          }
+
+          let value = adj.get_value() + direction * 1.2;
+          if (value >= maxScroll) {
+            value = maxScroll;
+            direction = -1;
+            pause = 20;
+          } else if (value <= 0) {
+            value = 0;
+            direction = 1;
+            pause = 20;
+          }
+          adj.set_value(value);
+          return true;
+        });
+      }}
+    >
+      <label cssClasses={["title", "module"]} label={label} />
+    </scrolledwindow>
   );
 }
 
