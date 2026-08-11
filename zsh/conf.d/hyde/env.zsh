@@ -11,7 +11,7 @@
 # If users used UWSM, uwsm will override any variables set anywhere in your shell configurations
 
 # Basic PATH prepending (user local bin)
-PATH="$HOME/.local/bin:$PATH"
+[[ ":$PATH:" == *":$HOME/.local/bin:"* ]] || PATH="$HOME/.local/bin:$PATH"
 
 # XDG Base Directory Specification variables with defaults
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
