@@ -26,4 +26,4 @@ if [[ ${HYDE_ZSH_NO_PLUGINS} != "1" ]]; then
     plugins=(
         "sudo"
     )
-fi
+fialias reload-launcher='pkill -f "gjs -m"; sleep 1; nohup ags run >/dev/null 2>&1 & disown'
