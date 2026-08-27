@@ -17,6 +17,5 @@ pgrep -f "ags run" >/dev/null || ags run &
 sleep 2
 pgrep -x copyq >/dev/null || copyq &
 pgrep -x ferdium >/dev/null || ferdium &
-pgrep -fi "discord" >/dev/null || discord &
 pgrep -x cider >/dev/null || cider &
 pgrep -f cider-notify.sh >/dev/null || ~/.local/bin/cider-notify.sh &
