@@ -19,3 +19,6 @@ pgrep -x copyq >/dev/null || copyq &
 pgrep -x ferdium >/dev/null || ferdium &
 pgrep -x cider >/dev/null || cider &
 pgrep -f cider-notify.sh >/dev/null || ~/.local/bin/cider-notify.sh &
+
+# Discord - flags para evitar crash al compartir pantalla
+pgrep -f "^$HOME/.config/discord/app-[^/]*/Discord( |$)" >/dev/null || "$HOME/.local/bin/discord" &
