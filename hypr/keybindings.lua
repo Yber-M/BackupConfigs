@@ -1,0 +1,132 @@
+-- Keybindings (post-HyDE). Fase 3 de la migracion a Lua.
+--
+-- Reemplazos de hyde-shell:
+--   lock-session -> hyprlock | window.pin -> hl.dsp.window.pin()
+--   volumecontrol/brightnesscontrol -> wpctl/brightnessctl (idéntico al ejemplo oficial)
+--   keyboardswitch -> hyprctl switchxkblayout | screenshot -> hyprshot (TODO: confirmar)
+--
+-- Eliminados: waybar toggle, rofi selectors de HyDE, wallbash/theme/animations/
+-- hyprlock catalog pickers, emoji/glyph picker, gamelauncher, window.mute puntual.
+
+local mainMod  = "SUPER"
+local terminal = "kitty"
+local explorer = "nautilus"
+local editor   = "code"
+local browser  = "zen-browser" -- TODO: confirmar binario real de Zen Browser
+
+---- WINDOW MANAGEMENT ----
+hl.bind(mainMod .. " + X", hl.dsp.window.close(), { desc = "close focused window" })
+hl.bind("ALT + F4", hl.dsp.window.close(), { desc = "close focused window" })
+hl.bind(mainMod .. " + W", hl.dsp.window.float({ action = "toggle" }), { desc = "toggle floating" })
+hl.bind(mainMod .. " + G", hl.dsp.group.toggle(), { desc = "toggle group" })
+hl.bind("SHIFT + F11", hl.dsp.exec_cmd("hyprctl dispatch fullscreen"), { desc = "toggle fullscreen" })
+hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("hyprctl dispatch fullscreen 1"), { desc = "maximize" })
+hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"), { desc = "lock screen" })
+hl.bind(mainMod .. " + SHIFT + F", hl.dsp.window.pin(), { desc = "toggle pin on focused window" })
+hl.bind("CONTROL + ALT + Delete", hl.dsp.exec_cmd("ags request -i matshell logout"), { desc = "logout menu" })
+
+---- GROUP NAVIGATION ----
+hl.bind(mainMod .. " + CONTROL + H", hl.dsp.group.prev(), { desc = "change active group backwards" })
+hl.bind(mainMod .. " + CONTROL + L", hl.dsp.group.next(), { desc = "change active group forwards" })
+
+---- CHANGE FOCUS ----
+hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + up",    hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
+hl.bind("ALT + Tab", hl.dsp.exec_cmd([[hyprctl --batch "dispatch cyclenext ; dispatch alterzorder top"]]), { desc = "cycle focus" })
+
+---- RESIZE ACTIVE WINDOW ----
+hl.bind(mainMod .. " + SHIFT + right", hl.dsp.exec_cmd("hyprctl dispatch resizeactive 30 0"),  { repeating = true, desc = "resize right" })
+hl.bind(mainMod .. " + SHIFT + left",  hl.dsp.exec_cmd("hyprctl dispatch resizeactive -30 0"), { repeating = true, desc = "resize left" })
+hl.bind(mainMod .. " + SHIFT + up",    hl.dsp.exec_cmd("hyprctl dispatch resizeactive 0 -30"), { repeating = true, desc = "resize up" })
+hl.bind(mainMod .. " + SHIFT + down",  hl.dsp.exec_cmd("hyprctl dispatch resizeactive 0 30"),  { repeating = true, desc = "resize down" })
+
+---- MOVE ACTIVE WINDOW ACROSS WORKSPACE (respeta floating) ----
+local moveActive = [[grep -q "true" <<< $(hyprctl activewindow -j | jq -r .floating) && hyprctl dispatch moveactive]]
+hl.bind(mainMod .. " + SHIFT + CONTROL + left",  hl.dsp.exec_cmd(moveActive .. " -30 0 || hyprctl dispatch movewindow l"),  { repeating = true })
+hl.bind(mainMod .. " + SHIFT + CONTROL + right", hl.dsp.exec_cmd(moveActive .. " 30 0 || hyprctl dispatch movewindow r"),   { repeating = true })
+hl.bind(mainMod .. " + SHIFT + CONTROL + up",    hl.dsp.exec_cmd(moveActive .. " 0 -30 || hyprctl dispatch movewindow u"), { repeating = true })
+hl.bind(mainMod .. " + SHIFT + CONTROL + down",  hl.dsp.exec_cmd(moveActive .. " 0 30 || hyprctl dispatch movewindow d"),  { repeating = true })
+
+---- MOVE / RESIZE WITH MOUSE ----
+hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
+hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
+hl.bind(mainMod .. " + Z", hl.dsp.window.drag(),   { mouse = true })
+hl.bind(mainMod .. " + R", hl.dsp.window.resize(), { mouse = true })
+
+---- LAYOUT ----
+hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))
+
+---- LAUNCHER: APPS ----
+hl.bind(mainMod .. " + RETURN",       hl.dsp.exec_cmd(terminal))
+hl.bind(mainMod .. " + ALT + RETURN", hl.dsp.exec_cmd(terminal .. " --class floating-terminal"))
+hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(explorer))
+hl.bind(mainMod .. " + C", hl.dsp.exec_cmd(editor))
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
+hl.bind("CONTROL + SHIFT + Escape", hl.dsp.exec_cmd("kitty -e btop"), { desc = "system monitor" })
+
+---- LAUNCHER: MATSHELL / ROFI ----
+hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("ags request -i matshell picker"), { desc = "application finder" })
+hl.bind(mainMod .. " + TAB",   hl.dsp.exec_cmd("pkill -x rofi || rofi -show window"), { desc = "window switcher" })
+hl.bind(mainMod .. " + V",     hl.dsp.exec_cmd("copyq show"))
+hl.bind(mainMod .. " + A",     hl.dsp.exec_cmd("ags request -i matshell sidebar"))
+
+---- HARDWARE: AUDIO ----
+hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/volume-safe.sh d"), { locked = true, repeating = true })
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/volume-safe.sh i"), { locked = true, repeating = true })
+hl.bind("XF86AudioMute", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/volume-safe.sh m"), { locked = true })
+
+---- HARDWARE: MEDIA ----
+hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
+hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
+
+---- HARDWARE: BRIGHTNESS ----
+hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"), { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"), { locked = true, repeating = true })
+
+---- UTILITIES ----
+hl.bind(mainMod .. " + ALT + G", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/toggle-gamemode.sh"), { desc = "game mode" })
+hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -an"), { desc = "color picker" })
+hl.bind(mainMod .. " + K", hl.dsp.exec_cmd("hyprctl switchxkblayout current next"), { desc = "toggle keyboard layout" })
+
+---- SCREEN CAPTURE (asumiendo hyprshot; grimblast tiene otra sintaxis) ----
+hl.bind(mainMod .. " + SHIFT + Z", hl.dsp.exec_cmd("hyprshot -m region --freeze"), { desc = "freeze and snip screen" })
+hl.bind(mainMod .. " + ALT + P",   hl.dsp.exec_cmd("hyprshot -m output"), { locked = true, desc = "print monitor" })
+hl.bind("Print", hl.dsp.exec_cmd("hyprshot -m screen"), { locked = true, desc = "print all monitors" })
+
+---- WALLPAPER ----
+hl.bind(mainMod .. " + ALT + right", hl.dsp.exec_cmd("ags request -i matshell wall-rand"), { desc = "random wallpaper" })
+hl.bind(mainMod .. " + SHIFT + W",   hl.dsp.exec_cmd("ags request -i matshell picker"),    { desc = "select wallpaper" })
+
+---- WORKSPACES: NAVIGATION ----
+for i = 1, 9 do
+    hl.bind(mainMod .. " + " .. i, hl.dsp.focus({ workspace = i }))
+    hl.bind(mainMod .. " + SHIFT + " .. i, hl.dsp.window.move({ workspace = i }))
+end
+hl.bind(mainMod .. " + 0", hl.dsp.focus({ workspace = 10 }))
+hl.bind(mainMod .. " + SHIFT + 0", hl.dsp.window.move({ workspace = 10 }))
+
+hl.bind(mainMod .. " + CONTROL + right", hl.dsp.focus({ workspace = "r+1" }))
+hl.bind(mainMod .. " + CONTROL + left",  hl.dsp.focus({ workspace = "r-1" }))
+hl.bind(mainMod .. " + CONTROL + down",  hl.dsp.focus({ workspace = "empty" }))
+
+hl.bind(mainMod .. " + CONTROL + ALT + right", hl.dsp.window.move({ workspace = "r+1" }))
+hl.bind(mainMod .. " + CONTROL + ALT + left",  hl.dsp.window.move({ workspace = "r-1" }))
+
+hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
+
+---- SPECIAL WORKSPACE (SCRATCHPAD) ----
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special" }))
+hl.bind(mainMod .. " + ALT + S", hl.dsp.exec_cmd("hyprctl dispatch movetoworkspacesilent special"))
+hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("hyprctl dispatch togglespecialworkspace"))
+
+---- MOVE WINDOW SILENTLY TO WORKSPACE ----
+for i = 1, 9 do
+    hl.bind(mainMod .. " + ALT + " .. i, hl.dsp.exec_cmd("hyprctl dispatch movetoworkspacesilent " .. i))
+end
+hl.bind(mainMod .. " + ALT + 0", hl.dsp.exec_cmd("hyprctl dispatch movetoworkspacesilent 10"))
