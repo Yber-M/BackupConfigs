@@ -94,9 +94,10 @@ hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -an"), { desc = "
 hl.bind(mainMod .. " + K", hl.dsp.exec_cmd("hyprctl switchxkblayout current next"), { desc = "toggle keyboard layout" })
 
 ---- SCREEN CAPTURE (asumiendo hyprshot; grimblast tiene otra sintaxis) ----
-hl.bind(mainMod .. " + SHIFT + Z", hl.dsp.exec_cmd("hyprshot -m region --freeze"), { desc = "freeze and snip screen" })
-hl.bind(mainMod .. " + ALT + P",   hl.dsp.exec_cmd("hyprshot -m output"), { locked = true, desc = "print monitor" })
-hl.bind("Print", hl.dsp.exec_cmd("hyprshot -m screen"), { locked = true, desc = "print all monitors" })
+hl.bind(mainMod .. " + SHIFT + Z", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/screenshot.sh region"), { desc = "region screenshot" })
+hl.bind(mainMod .. " + CTRL + SHIFT + Z", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/screenshot.sh edit"), { desc = "region screenshot with editor" })
+hl.bind(mainMod .. " + ALT + P", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/screenshot.sh output"), { locked = true, desc = "monitor screenshot" })
+hl.bind("Print", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/screenshot.sh full"), { locked = true, desc = "full screenshot" })
 
 ---- WALLPAPER ----
 hl.bind(mainMod .. " + ALT + right", hl.dsp.exec_cmd("ags request -i matshell wall-rand"), { desc = "random wallpaper" })
