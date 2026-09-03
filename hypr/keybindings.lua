@@ -64,7 +64,7 @@ hl.bind(mainMod .. " + ALT + RETURN", hl.dsp.exec_cmd(terminal .. " --class floa
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(explorer))
 hl.bind(mainMod .. " + C", hl.dsp.exec_cmd(editor))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
-hl.bind("CONTROL + SHIFT + Escape", hl.dsp.exec_cmd("kitty -e btop"), { desc = "system monitor" })
+hl.bind("CONTROL + SHIFT + Escape", hl.dsp.exec_cmd("resources"), { desc = "system monitor" })
 
 ---- LAUNCHER: MATSHELL / ROFI ----
 hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("ags request -i matshell picker"), { desc = "application finder" })
@@ -73,10 +73,10 @@ hl.bind(mainMod .. " + V",     hl.dsp.exec_cmd("copyq show"))
 hl.bind(mainMod .. " + A",     hl.dsp.exec_cmd("ags request -i matshell sidebar"))
 
 ---- HARDWARE: AUDIO ----
-hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true })
+hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("hyde-shell volumecontrol -i m"), { locked = true })
 hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/volume-safe.sh d"), { locked = true, repeating = true })
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/volume-safe.sh i"), { locked = true, repeating = true })
-hl.bind("XF86AudioMute", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/volume-safe.sh m"), { locked = true })
+hl.bind("XF86AudioMute", hl.dsp.exec_cmd("hyde-shell volumecontrol -o m"), { locked = true })
 
 ---- HARDWARE: MEDIA ----
 hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
@@ -91,7 +91,7 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"
 ---- UTILITIES ----
 hl.bind(mainMod .. " + ALT + G", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/toggle-gamemode.sh"), { desc = "game mode" })
 hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -an"), { desc = "color picker" })
-hl.bind(mainMod .. " + K", hl.dsp.exec_cmd("hyprctl switchxkblayout current next"), { desc = "toggle keyboard layout" })
+hl.bind(mainMod .. " + K", hl.dsp.exec_cmd("hyde-shell keyboardswitch"), { desc = "toggle keyboard layout" })
 
 ---- SCREEN CAPTURE (asumiendo hyprshot; grimblast tiene otra sintaxis) ----
 hl.bind(mainMod .. " + SHIFT + Z", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/screenshot.sh region"), { desc = "region screenshot" })

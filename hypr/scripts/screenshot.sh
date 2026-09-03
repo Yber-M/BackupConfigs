@@ -2,7 +2,7 @@
 # Screenshot helper: grim + slurp + swappy
 set -euo pipefail
 
-DIR="$HOME/Pictures/Screenshots"
+DIR="/home/yb-m/Descargas"
 mkdir -p "$DIR"
 FILE="$DIR/screenshot_$(date +%Y-%m-%d_%H-%M-%S).png"
 
