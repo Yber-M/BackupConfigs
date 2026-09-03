@@ -37,35 +37,17 @@ hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
 hl.bind("ALT + Tab", hl.dsp.exec_cmd([[hyprctl --batch "dispatch cyclenext ; dispatch alterzorder top"]]), { desc = "cycle focus" })
 
 ---- RESIZE ACTIVE WINDOW ----
-hl.bind(mainMod .. " + SHIFT + right", hl.dsp.window.resize({ x = 30, y = 0, relative = true }), { repeating = true, desc = "resize right" })
-hl.bind(mainMod .. " + SHIFT + left", hl.dsp.window.resize({ x = -30, y = 0, relative = true }), { repeating = true, desc = "resize left" })
-hl.bind(mainMod .. " + SHIFT + up", hl.dsp.window.resize({ x = 0, y = -30, relative = true }), { repeating = true, desc = "resize up" })
-hl.bind(mainMod .. " + SHIFT + down", hl.dsp.window.resize({ x = 0, y = 30, relative = true }), { repeating = true, desc = "resize down" })
+hl.bind(mainMod .. " + SHIFT + right", hl.dsp.exec_cmd("hyprctl dispatch resizeactive 30 0"),  { repeating = true, desc = "resize right" })
+hl.bind(mainMod .. " + SHIFT + left",  hl.dsp.exec_cmd("hyprctl dispatch resizeactive -30 0"), { repeating = true, desc = "resize left" })
+hl.bind(mainMod .. " + SHIFT + up",    hl.dsp.exec_cmd("hyprctl dispatch resizeactive 0 -30"), { repeating = true, desc = "resize up" })
+hl.bind(mainMod .. " + SHIFT + down",  hl.dsp.exec_cmd("hyprctl dispatch resizeactive 0 30"),  { repeating = true, desc = "resize down" })
 
 ---- MOVE ACTIVE WINDOW ACROSS WORKSPACE (respeta floating) ----
-local function moveWindowSmart(x, y, direction)
-    return function()
-        local win = hl.get_active_window()
-        if not win then return end
-
-        if win.floating then
-            hl.dispatch(hl.dsp.window.move({
-                x = x,
-                y = y,
-                relative = true,
-            }))
-        else
-            hl.dispatch(hl.dsp.window.move({
-                direction = direction,
-            }))
-        end
-    end
-end
-
-hl.bind(mainMod .. " + SHIFT + CONTROL + left",  moveWindowSmart(-30, 0, "l"), { repeating = true })
-hl.bind(mainMod .. " + SHIFT + CONTROL + right", moveWindowSmart(30, 0, "r"),  { repeating = true })
-hl.bind(mainMod .. " + SHIFT + CONTROL + up",    moveWindowSmart(0, -30, "u"), { repeating = true })
-hl.bind(mainMod .. " + SHIFT + CONTROL + down",  moveWindowSmart(0, 30, "d"),  { repeating = true })
+local moveActive = [[grep -q "true" <<< $(hyprctl activewindow -j | jq -r .floating) && hyprctl dispatch moveactive]]
+hl.bind(mainMod .. " + SHIFT + CONTROL + left",  hl.dsp.exec_cmd(moveActive .. " -30 0 || hyprctl dispatch movewindow l"),  { repeating = true })
+hl.bind(mainMod .. " + SHIFT + CONTROL + right", hl.dsp.exec_cmd(moveActive .. " 30 0 || hyprctl dispatch movewindow r"),   { repeating = true })
+hl.bind(mainMod .. " + SHIFT + CONTROL + up",    hl.dsp.exec_cmd(moveActive .. " 0 -30 || hyprctl dispatch movewindow u"), { repeating = true })
+hl.bind(mainMod .. " + SHIFT + CONTROL + down",  hl.dsp.exec_cmd(moveActive .. " 0 30 || hyprctl dispatch movewindow d"),  { repeating = true })
 
 ---- MOVE / RESIZE WITH MOUSE ----
 hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
@@ -140,12 +122,12 @@ hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
 hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
 
 ---- SPECIAL WORKSPACE (SCRATCHPAD) ----
-hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:scratchpad" }))
-hl.bind(mainMod .. " + ALT + S", hl.dsp.window.move({ workspace = "special:scratchpad", follow = false }))
-hl.bind(mainMod .. " + S", hl.dsp.workspace.toggle_special("scratchpad"))
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special" }))
+hl.bind(mainMod .. " + ALT + S", hl.dsp.exec_cmd("hyprctl dispatch movetoworkspacesilent special"))
+hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("hyprctl dispatch togglespecialworkspace"))
 
 ---- MOVE WINDOW SILENTLY TO WORKSPACE ----
 for i = 1, 9 do
-    hl.bind(mainMod .. " + ALT + " .. i, hl.dsp.window.move({ workspace = i, follow = false }))
+    hl.bind(mainMod .. " + ALT + " .. i, hl.dsp.exec_cmd("hyprctl dispatch movetoworkspacesilent " .. i))
 end
-hl.bind(mainMod .. " + ALT + 0", hl.dsp.window.move({ workspace = 10, follow = false }))
+hl.bind(mainMod .. " + ALT + 0", hl.dsp.exec_cmd("hyprctl dispatch movetoworkspacesilent 10"))
