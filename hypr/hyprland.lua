@@ -6,6 +6,24 @@ hl.monitor({ output = "desc:Samsung Electric Company LS32AG55x HNTTC00172",
 hl.monitor({ output = "desc:LG Display 0x07A3",
              mode = "2560x1600@240.0", position = "0x440", scale = 1.6 })
 
+---- WORKSPACES / MONITORES ----
+local samsung = "desc:Samsung Electric Company LS32AG55x HNTTC00172"
+local laptop  = "desc:LG Display 0x07A3"
+
+hl.workspace_rule({ workspace = "1",  monitor = samsung, default = true })
+
+hl.workspace_rule({ workspace = "2",  monitor = laptop, default = true })
+hl.workspace_rule({ workspace = "3",  monitor = laptop })
+hl.workspace_rule({ workspace = "4",  monitor = laptop })
+hl.workspace_rule({ workspace = "5",  monitor = laptop })
+
+hl.workspace_rule({ workspace = "6",  monitor = samsung })
+hl.workspace_rule({ workspace = "7",  monitor = samsung })
+
+hl.workspace_rule({ workspace = "8",  monitor = laptop })
+hl.workspace_rule({ workspace = "9",  monitor = laptop })
+hl.workspace_rule({ workspace = "10", monitor = laptop })
+
 ---- ENTORNO (NVIDIA) ----
 hl.env("LIBVA_DRIVER_NAME", "nvidia")
 hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
@@ -34,7 +52,7 @@ hl.config({
         blur = {
             enabled = true, size = 6, passes = 3,
             new_optimizations = true, ignore_opacity = true,
-            xray = false, popups = true, popups_ignorealpha = 0.2,
+            xray = false, special = true, popups = true, popups_ignorealpha = 0.2,
         },
     },
 
@@ -69,18 +87,22 @@ hl.config({
 hl.device({ name = "logitech-g502-x-plus", sensitivity = -0.2, scroll_factor = 0.65 })
 
 ---- PLUGINS ----
--- TODO: la sintaxis Lua de dynamic-cursors no esta confirmada (plugin de
--- terceros, no del nucleo). El plugin sigue cargado por hyprpm, solo
--- queda sin esta personalizacion de modo tilt hasta investigar la API.
--- hl.config({
---     plugin = {
---         ["dynamic-cursors"] = {
---             enabled = true,
---             mode = "tilt",
---             rotate = { length = 24, offset = 0.0 },
---         },
---     },
--- })
+-- dynamic-cursors se carga mediante hyprpm.
+if hl.plugin.dynamic_cursors then
+    hl.config({
+        plugin = {
+            dynamic_cursors = {
+                enabled = true,
+                mode = "tilt",
+
+                rotate = {
+                    length = 24,
+                    offset = 0.0,
+                },
+            },
+        },
+    })
+end
 
 ---- AUTOSTART ----
 hl.on("hyprland.start", function()
