@@ -86,7 +86,6 @@ hl.bind("CONTROL + SHIFT + Escape", hl.dsp.exec_cmd("resources"), { desc = "syst
 
 ---- LAUNCHER: MATSHELL / ROFI ----
 hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd("ags request -i matshell picker"), { desc = "application finder" })
-hl.bind(mainMod .. " + TAB",   hl.dsp.exec_cmd("pkill -x rofi || rofi -show window"), { desc = "window switcher" })
 hl.bind(mainMod .. " + V",     hl.dsp.exec_cmd("copyq show"))
 hl.bind(mainMod .. " + A",     hl.dsp.exec_cmd("ags request -i matshell sidebar"))
 
