@@ -21,7 +21,7 @@ hl.bind(mainMod .. " + W", hl.dsp.window.float({ action = "toggle" }), { desc = 
 hl.bind(mainMod .. " + G", hl.dsp.group.toggle(), { desc = "toggle group" })
 hl.bind("SHIFT + F11", hl.dsp.window.fullscreen({ mode = "fullscreen" }), { desc = "toggle fullscreen" })
 hl.bind(mainMod .. " + M", hl.dsp.window.fullscreen({ mode = "maximized" }), { desc = "maximize" })
-hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"), { desc = "lock screen" })
+hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/lock.sh"), { desc = "lock screen" })
 hl.bind(mainMod .. " + SHIFT + F", hl.dsp.window.pin(), { desc = "toggle pin on focused window" })
 hl.bind("CONTROL + ALT + Delete", hl.dsp.exec_cmd("ags request -i matshell logout"), { desc = "logout menu" })
 
