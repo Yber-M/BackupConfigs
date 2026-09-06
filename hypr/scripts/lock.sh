@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cache="${XDG_CACHE_HOME:-$HOME/.cache}/hyde/wall.set.png"
+cache="${XDG_CACHE_HOME:-$HOME/.cache}/hyprlock/wallpaper.png"
 
 # Intentar usar el wallpaper del monitor actualmente activo.
 monitor="$(hyprctl activeworkspace -j | jq -r '.monitor')"

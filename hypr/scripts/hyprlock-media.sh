@@ -37,14 +37,22 @@ case "$action" in
         ;;
 
     art)
-        [[ -n "$player" ]] || exit 0
+        fallback="${XDG_CACHE_HOME:-$HOME/.cache}/hyprlock/transparent.png"
+
+        if [[ -z "$player" ]]; then
+            printf '%s\n' "$fallback"
+            exit 0
+        fi
 
         url="$(
             playerctl metadata -p "$player" \
                 mpris:artUrl 2>/dev/null || true
         )"
 
-        [[ -n "$url" ]] || exit 0
+        if [[ -z "$url" ]]; then
+            printf '%s\n' "$fallback"
+            exit 0
+        fi
 
         mkdir -p "$cache"
 
