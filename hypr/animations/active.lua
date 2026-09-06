@@ -1,0 +1,1 @@
+/home/yb-m/.config/hypr/animations/fast.lua
