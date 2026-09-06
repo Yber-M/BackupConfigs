@@ -8,6 +8,7 @@ flock -n 9 || exit 0
 sleep 1
 
 pgrep -x awww-daemon >/dev/null || awww-daemon &
+pgrep -f "ags run" >/dev/null || ags run &
 
 #~/.config/hypr/scripts/patch-waybar-cava.sh
 

@@ -24,9 +24,6 @@ hl.workspace_rule({ workspace = "8",  monitor = laptop })
 hl.workspace_rule({ workspace = "9",  monitor = laptop })
 hl.workspace_rule({ workspace = "10", monitor = laptop })
 
--- Reasignación dinámica de workspaces al conectar/desconectar monitores.
-dofile(os.getenv("HOME") .. "/.config/hypr/workspaces-hotplug.lua")
-
 ---- ENTORNO (NVIDIA) ----
 hl.env("LIBVA_DRIVER_NAME", "nvidia")
 hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
