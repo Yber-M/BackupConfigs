@@ -1,0 +1,105 @@
+-- Workspaces dinámicos según monitores conectados.
+-- Samsung conectado:
+--   1, 6, 7 -> Samsung
+--   2, 3, 4, 5, 8, 9, 10 -> laptop
+--
+-- Samsung desconectado:
+--   1-10 -> laptop
+
+local samsung_description =
+    "Samsung Electric Company LS32AG55x HNTTC00172"
+
+local laptop_description =
+    "LG Display 0x07A3"
+
+local samsung_workspaces = {
+    [1] = true,
+    [6] = true,
+    [7] = true,
+}
+
+local function find_monitors()
+    local samsung = nil
+    local laptop = nil
+
+    for _, monitor in ipairs(hl.get_monitors()) do
+        if monitor.description == samsung_description then
+            samsung = monitor
+        elseif monitor.description == laptop_description then
+            laptop = monitor
+        end
+    end
+
+    return samsung, laptop
+end
+
+local function target_for_workspace(id, samsung, laptop)
+    if id < 1 or id > 10 then
+        return nil
+    end
+
+    if samsung and samsung_workspaces[id] then
+        return samsung
+    end
+
+    return laptop
+end
+
+local function move_workspace_if_needed(ws, samsung, laptop)
+    if ws.special then
+        return
+    end
+
+    local target = target_for_workspace(ws.id, samsung, laptop)
+
+    if not target then
+        return
+    end
+
+    local current_monitor = ws.monitor
+
+    if current_monitor and current_monitor.name == target.name then
+        return
+    end
+
+    hl.dispatch(
+        hl.dsp.workspace.move({
+            workspace = ws,
+            monitor = target,
+        })
+    )
+end
+
+local function rebalance_workspaces()
+    local samsung, laptop = find_monitors()
+
+    -- Sin la pantalla interna no intentamos reasignar automáticamente.
+    if not laptop then
+        return
+    end
+
+    for _, ws in ipairs(hl.get_workspaces()) do
+        move_workspace_if_needed(ws, samsung, laptop)
+    end
+end
+
+-- Rebalancear cuando cambia físicamente la topología.
+hl.on("monitor.added", function()
+    rebalance_workspaces()
+end)
+
+hl.on("monitor.removed", function()
+    rebalance_workspaces()
+end)
+
+-- Si se crea un workspace nuevo mientras el Samsung está desconectado
+-- o conectado, colocarlo inmediatamente donde corresponde.
+hl.on("workspace.created", function(ws)
+    local samsung, laptop = find_monitors()
+
+    if not laptop then
+        return
+    end
+
+    move_workspace_if_needed(ws, samsung, laptop)
+end)
