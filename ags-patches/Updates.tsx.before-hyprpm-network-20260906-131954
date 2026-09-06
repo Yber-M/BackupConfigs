@@ -1,0 +1,40 @@
+import { execAsync } from "ags/process";
+import options from "options";
+import { updateCounts, refreshUpdateCounts } from "utils/updates";
+
+export default function Updates() {
+  const visible = updateCounts((c) => c.total > 0);
+
+  const tooltip = updateCounts(
+    (c) =>
+      `Oficiales: ${c.official}  ·  AUR: ${c.aur}  ·  Flatpak: ${c.flatpak}`,
+  );
+
+  return (
+    <button
+      cssClasses={["updates", "module"]}
+      visible={visible}
+      tooltipText={tooltip}
+      onClicked={async () => {
+        try {
+          const terminal = options["app.terminal"].get();
+          await execAsync([
+            terminal,
+            "-e",
+            "bash",
+            "-c",
+            "yay -Syu --noconfirm --answerclean None --answerdiff None --answeredit None; echo; flatpak update -y; echo; STAMP=~/.cache/hyprpm-last-check; if [ ! -f \"$STAMP\" ] || [ $(find \"$STAMP\" -mtime +7 2>/dev/null | wc -l) -gt 0 ]; then echo 'Revisando plugins de Hyprland (chequeo semanal)...'; hyprpm update && hyprpm reload && touch \"$STAMP\"; else echo 'Plugins de Hyprland ya revisados esta semana, omitiendo.'; fi; echo; read -p 'Presiona Enter para cerrar...'",
+          ]);
+          await refreshUpdateCounts();
+        } catch (error) {
+          console.error("Failed to open update terminal:", error);
+        }
+      }}
+    >
+      <box spacing={4}>
+        <image iconName="software-update-available-symbolic" />
+        <label label={updateCounts((c) => `${c.total}`)} />
+      </box>
+    </button>
+  );
+}
