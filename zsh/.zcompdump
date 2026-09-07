@@ -191,6 +191,7 @@ _comps=(
 'clang++' '_gcc'
 'clay' '_clay'
 'clear' '_nothing'
+'clone-in-kitty' '_kitty'
 'cloudkitty' '_openstack'
 'clusterdb' '_postgresql'
 'cmp' '_cmp'
@@ -240,6 +241,7 @@ _comps=(
 'curl' '_curl'
 'cut' '_cut'
 'cvs' '_cvs'
+'d' '_dirs'
 'darcs' '_darcs'
 'dash' '_sh'
 'date' '_date'
@@ -413,6 +415,7 @@ _comps=(
 'gbasename' '_basename'
 'gcat' '_cat'
 'gcc' '_gcc'
+'gccd' '_git'
 'gccgo' '_go'
 'gchgrp' '_chown'
 'gchmod' '_chmod'
@@ -429,7 +432,9 @@ _comps=(
 'gdd' '_dd'
 'gdf' '_df'
 'gdiff' '_diff'
+'gdnolock' '_git'
 'gdu' '_du'
+'gdv' '_git'
 'geany' '_geany'
 'gecho' '_echo'
 'gegrep' '_grep'
@@ -454,7 +459,13 @@ _comps=(
 'gfmt' '_fmt'
 'gfold' '_fold'
 'ggetopt' '_getopt'
+'ggf' '_git'
+'ggfl' '_git'
+'ggl' '_git'
+'ggp' '_git'
+'ggpnp' '_git'
 'ggrep' '_grep'
+'ggu' '_git'
 'ggv' '_gnome-gv'
 'gh' '_gh'
 'ghead' '_head'
@@ -465,6 +476,7 @@ _comps=(
 'git' '_git'
 'git-cvsserver' '_git'
 'gitk' '_git'
+'_git_log_prettily' '_git'
 'git-receive-pack' '_git'
 'git-shell' '_git'
 'git-upload-archive' '_git'
@@ -686,6 +698,7 @@ _comps=(
 'killall' '_killall'
 'killall5' '_killall'
 'kioclient' '_kfmclient'
+'kitten' '_kitty'
 'kitty' '_kitty'
 'knock' '_knock'
 'konqueror' '_webbrowser'
@@ -932,6 +945,7 @@ _comps=(
 'ntalk' '_other_accounts'
 'numfmt' '_numfmt'
 'nvim' '_vim'
+'nvm' '_bash_complete -o default -F __nvm'
 'objdump' '_objdump'
 'od' '_od'
 'ogg123' '_vorbis'
@@ -940,6 +954,7 @@ _comps=(
 'ogginfo' '_vorbis'
 'oksh' '_sh'
 'okular' '_okular'
+'omz' '_omz'
 'oomctl' '_oomctl'
 'opencode' '_opencode'
 'openstack' '_openstack'
@@ -1724,8 +1739,18 @@ _comps=(
 
 _services=(
 'bzcat' 'bunzip2'
+'gccd' 'git-clone'
 'gchgrp' 'chgrp'
 'gchown' 'chown'
+'gdnolock' 'git-diff'
+'gdv' 'git-diff'
+'ggf' 'git-push'
+'ggfl' 'git-push'
+'ggl' 'git-pull'
+'ggp' 'git-push'
+'ggpnp' 'git-checkout'
+'ggu' 'git-pull'
+'_git_log_prettily' 'git-log'
 'gnupod_addsong.pl' 'gnupod_addsong'
 'gnupod_check.pl' 'gnupod_check'
 'gnupod_INIT.pl' 'gnupod_INIT'
@@ -1839,28 +1864,28 @@ bindkey '^[,' _history-complete-newer
 bindkey '^[/' _history-complete-older
 bindkey '^[~' _bash_complete-word
 
-autoload -Uz _atuin _awww _bat _bluetoothctl _bootctl \
-            _btm _busctl _bwrap _cargo _checkupdates \
-            _coredumpctl _ctr _curl _delta _dkms \
-            _docker _doggo _dust _eza _fastfetch \
-            _fd _flatpak _gh _hostnamectl _hyperfine \
-            _hyprctl _hyprpm _hyprshell _img2sixel _insmod \
-            _journalctl _kde-inhibit _kernel-install _kitty _localectl \
-            _loginctl _lsmod _machinectl _meson _mkinitcpio \
-            _mpv _networkctl _ninja _oomctl _opencode \
-            _p11-kit _paccache _pacdiff _paclist _paclog-pkglist \
-            _pacman _pacscripts _pacsearch _pacsort _pactree \
-            _parallel _pip _playerctl _procs _pulseaudio \
-            _rankmirrors _rclone _resolvectl _rg _rmmod \
-            _run0 _satty _sbctl _sd_bus_address _sd_hosts_or_user_at_host \
-            _sd_machines _sd_outputmodes _sd_unit_files _sensors _sensors-detect \
-            _shtab _starship _storagectl _systemctl _systemd \
-            _systemd-analyze _systemd-delta _systemd-hwdb _systemd-id128 _systemd-inhibit \
-            _systemd-nspawn _systemd-path _systemd-run _systemd-sysinstall _systemd-tmpfiles \
-            _timedatectl _tldr _trust _udevadm _udiskie \
-            _udiskie-canonical_paths _udiskie-mount _udiskie-umount _udisks2 _updpkgsums \
-            _upower _userdbctl _uv _varlinkctl _wl-copy \
-            _wlogout _wl-paste _wpctl _yay _zoxide \
+autoload -Uz _kitty _atuin _awww _bat _bluetoothctl \
+            _bootctl _btm _busctl _bwrap _cargo \
+            _checkupdates _coredumpctl _ctr _curl _delta \
+            _dkms _docker _doggo _dust _eza \
+            _fastfetch _fd _flatpak _gh _hostnamectl \
+            _hyperfine _hyprctl _hyprpm _hyprshell _img2sixel \
+            _insmod _journalctl _kde-inhibit _kernel-install _kitty \
+            _localectl _loginctl _lsmod _machinectl _meson \
+            _mkinitcpio _mpv _networkctl _ninja _oomctl \
+            _opencode _p11-kit _paccache _pacdiff _paclist \
+            _paclog-pkglist _pacman _pacscripts _pacsearch _pacsort \
+            _pactree _parallel _pip _playerctl _procs \
+            _pulseaudio _rankmirrors _rclone _resolvectl _rg \
+            _rmmod _run0 _satty _sbctl _sd_bus_address \
+            _sd_hosts_or_user_at_host _sd_machines _sd_outputmodes _sd_unit_files _sensors \
+            _sensors-detect _shtab _starship _storagectl _systemctl \
+            _systemd _systemd-analyze _systemd-delta _systemd-hwdb _systemd-id128 \
+            _systemd-inhibit _systemd-nspawn _systemd-path _systemd-run _systemd-sysinstall \
+            _systemd-tmpfiles _timedatectl _tldr _trust _udevadm \
+            _udiskie _udiskie-canonical_paths _udiskie-mount _udiskie-umount _udisks2 \
+            _updpkgsums _upower _userdbctl _uv _varlinkctl \
+            _wl-copy _wl-paste _wpctl _yay _zoxide \
             _cdr _all_labels _all_matches _alternative _approximate \
             _arg_compile _arguments _as_if _bash_completions _cache_invalid \
             _call_function _combination _complete _complete_debug _complete_help \
