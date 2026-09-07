@@ -2,4 +2,5 @@
 
 exec /usr/bin/discord \
   --disable-features=VaapiVideoEncoder \
+  --disable-gpu-memory-buffer-video-frames \
   "$@"
