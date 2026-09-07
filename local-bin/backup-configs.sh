@@ -13,7 +13,6 @@ rsync -a --delete "$HOME/.config/copyq/" "$BACKUP_DIR/copyq/" 2>/dev/null || tru
 rsync -a --delete "$HOME/.config/fastfetch/" "$BACKUP_DIR/fastfetch/" 2>/dev/null || true
 rsync -a --delete "$HOME/.config/starship/" "$BACKUP_DIR/starship/"
 rsync -a --delete "$HOME/.config/fontconfig/" "$BACKUP_DIR/fontconfig/" 2>/dev/null || true
-rsync -a --delete "$HOME/.config/rofi/" "$BACKUP_DIR/rofi/" 2>/dev/null || true
 rsync -a --delete "$HOME/.config/systemd/user/" "$BACKUP_DIR/systemd-user/" 2>/dev/null || true
 rsync -a --delete "$HOME/.local/bin/" "$BACKUP_DIR/local-bin/" 2>/dev/null || true
 
