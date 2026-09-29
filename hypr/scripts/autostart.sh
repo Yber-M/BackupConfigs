@@ -9,10 +9,6 @@ sleep 1
 
 pgrep -x awww-daemon >/dev/null || awww-daemon &
 
-#~/.config/hypr/scripts/patch-waybar-cava.sh
-
-#killall -SIGUSR2 waybar 2>/dev/null
-
 sleep 2
 pgrep -x copyq >/dev/null || copyq &
 pgrep -x ferdium >/dev/null || ferdium &
