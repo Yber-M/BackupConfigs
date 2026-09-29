@@ -1,10 +1,37 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 ART_DIR="$HOME/.local/share/ascii-art/textart-clean"
-CANDIDATES=(
-  archery basketball3 bear camel castle4 chess2 cow cow4 dental desktop2
-  dragon feathers fish flower girl guitar2 handyoga horse hummingbird
-  hummingbird2 medusa mirror1_ff mouth_cyan mouth_red pattern2 pizza1
-  pizza2 pomodoro taco trafficlight vburger
+LAST_FILE="$ART_DIR/.last-logo"
+
+mapfile -d '' FILES < <(
+    find "$ART_DIR" \
+        -maxdepth 1 \
+        -type f \
+        ! -name '.last-logo' \
+        ! -name '.*' \
+        -print0
 )
-PICK="${CANDIDATES[$RANDOM % ${#CANDIDATES[@]}]}"
-fastfetch --file-raw "$ART_DIR/$PICK"
+
+COUNT="${#FILES[@]}"
+
+if (( COUNT == 0 )); then
+    exec fastfetch
+fi
+
+LAST=""
+[[ -f "$LAST_FILE" ]] && IFS= read -r LAST < "$LAST_FILE"
+
+# Si solo hay uno, usarlo.
+if (( COUNT == 1 )); then
+    PICK="${FILES[0]}"
+else
+    # Evitar repetir inmediatamente el mismo logo.
+    while :; do
+        PICK="${FILES[RANDOM % COUNT]}"
+        [[ "$PICK" != "$LAST" ]] && break
+    done
+fi
+
+printf '%s\n' "$PICK" > "$LAST_FILE"
+
+exec fastfetch --file-raw "$PICK"
