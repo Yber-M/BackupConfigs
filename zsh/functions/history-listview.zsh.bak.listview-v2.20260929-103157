@@ -1,0 +1,290 @@
+#!/usr/bin/env zsh
+
+# Pager complementario para zsh-autocomplete.
+# Página automática de zsh-autocomplete = página 1.
+# ←/→ permiten recorrer páginas adicionales de 8 resultados.
+
+autoload -Uz add-zsh-hook
+
+typeset -gi YB_HIST_PAGE_SIZE=8
+typeset -gi YB_HIST_ACTIVE=0
+typeset -gi YB_HIST_ARMED=0
+typeset -gi YB_HIST_PAGE=1
+typeset -gi YB_HIST_PAGES=1
+typeset -gi YB_HIST_ROW=1
+
+typeset -g YB_HIST_QUERY=""
+typeset -g YB_HIST_ORIGINAL=""
+typeset -ga YB_HIST_ITEMS=()
+
+# Evitar que el autocomplete asíncrono vuelva a pintar su lista
+# mientras estamos dentro de nuestro pager.
+zstyle ':autocomplete:yb-history-*:' ignore yes
+
+
+_yb_hist_reset_state() {
+    YB_HIST_ACTIVE=0
+    YB_HIST_ARMED=0
+    YB_HIST_PAGE=1
+    YB_HIST_PAGES=1
+    YB_HIST_ROW=1
+    YB_HIST_QUERY=""
+    YB_HIST_ORIGINAL=""
+    YB_HIST_ITEMS=()
+}
+
+_yb_hist_precmd_reset() {
+    _yb_hist_reset_state
+}
+
+add-zsh-hook precmd _yb_hist_precmd_reset
+
+
+_yb_hist_collect() {
+    emulate -L zsh
+
+    YB_HIST_ITEMS=()
+
+    [[ -n "$YB_HIST_QUERY" ]] || return 1
+
+    local output=""
+
+    # Historial reciente primero.
+    # Coincidencia literal sin distinguir mayúsculas.
+    # Eliminamos duplicados y limitamos a 400 entradas.
+    output="$(
+        fc -lnr 1 2>/dev/null |
+        grep -iF -- "$YB_HIST_QUERY" |
+        awk '
+            !seen[$0]++ {
+                print
+                count++
+                if (count >= 400)
+                    exit
+            }
+        '
+    )"
+
+    [[ -n "$output" ]] || return 1
+
+    YB_HIST_ITEMS=( "${(@f)output}" )
+
+    local total=${#YB_HIST_ITEMS}
+
+    YB_HIST_PAGES=$(
+        echo $(( (total + YB_HIST_PAGE_SIZE - 1) / YB_HIST_PAGE_SIZE ))
+    )
+
+    (( YB_HIST_PAGES < 1 )) && YB_HIST_PAGES=1
+}
+
+
+_yb_hist_render() {
+    emulate -L zsh
+
+    local total=${#YB_HIST_ITEMS}
+
+    (( total > 0 )) || return
+
+    # Paginación circular.
+    (( YB_HIST_PAGE < 1 )) &&
+        YB_HIST_PAGE=$YB_HIST_PAGES
+
+    (( YB_HIST_PAGE > YB_HIST_PAGES )) &&
+        YB_HIST_PAGE=1
+
+    local start=$(( (YB_HIST_PAGE - 1) * YB_HIST_PAGE_SIZE + 1 ))
+    local finish=$(( start + YB_HIST_PAGE_SIZE - 1 ))
+
+    (( finish > total )) && finish=$total
+
+    local page_count=$(( finish - start + 1 ))
+
+    # Navegación circular dentro de la página.
+    (( YB_HIST_ROW < 1 )) &&
+        YB_HIST_ROW=$page_count
+
+    (( YB_HIST_ROW > page_count )) &&
+        YB_HIST_ROW=1
+
+    local selected=$(( start + YB_HIST_ROW - 1 ))
+
+    BUFFER="${YB_HIST_ITEMS[$selected]}"
+    CURSOR=${#BUFFER}
+
+    # Limpiar lista automática anterior de zsh-autocomplete.
+    zle -Rc
+
+    local message=""
+    local i row mark display
+    local max_width=$(( COLUMNS - 10 ))
+
+    (( max_width < 30 )) && max_width=30
+
+    message=$'\n'
+    message+="Historial [${YB_HIST_PAGE}/${YB_HIST_PAGES}]"
+    message+="  ·  ${selected}/${total}"
+    message+="  ·  ←/→ página  ↑/↓ seleccionar  Enter insertar"
+    message+=$'\n'
+
+    row=1
+
+    for (( i = start; i <= finish; i++ )); do
+        display="${YB_HIST_ITEMS[$i]}"
+        display="${display//$'\t'/ }"
+
+        if (( ${#display} > max_width )); then
+            display="${display[1,$(( max_width - 1 ))]}…"
+        fi
+
+        if (( row == YB_HIST_ROW )); then
+            mark="❯"
+        else
+            mark=" "
+        fi
+
+        message+="${mark} ${row}. ${display}"
+
+        (( i < finish )) && message+=$'\n'
+
+        (( row++ ))
+    done
+
+    POSTDISPLAY="$message"
+    zle redisplay
+}
+
+
+_yb_hist_start() {
+    emulate -L zsh
+
+    local direction="$1"
+
+    YB_HIST_ARMED=0
+
+    if ! _yb_hist_collect; then
+        POSTDISPLAY=$'\nHistorial: sin coincidencias'
+        zle redisplay
+        return
+    fi
+
+    YB_HIST_ACTIVE=1
+    YB_HIST_ROW=1
+
+    # La lista automática que vemos inicialmente cuenta como página 1.
+    # → pasa a página 2.
+    # ← pasa a la última página.
+    if (( direction > 0 )); then
+        if (( YB_HIST_PAGES > 1 )); then
+            YB_HIST_PAGE=2
+        else
+            YB_HIST_PAGE=1
+        fi
+    else
+        YB_HIST_PAGE=$YB_HIST_PAGES
+    fi
+
+    _yb_hist_render
+}
+
+
+_yb_hist_up() {
+    if (( YB_HIST_ACTIVE )); then
+        (( YB_HIST_ROW-- ))
+        _yb_hist_render
+    else
+        # Guardar la consulta ANTES de que menuselect reemplace BUFFER
+        # por la sugerencia resaltada.
+        YB_HIST_QUERY="$BUFFER"
+        YB_HIST_ORIGINAL="$BUFFER"
+        YB_HIST_ARMED=1
+
+        zle up-line-or-search
+    fi
+}
+
+
+_yb_hist_down() {
+    if (( YB_HIST_ACTIVE )); then
+        (( YB_HIST_ROW++ ))
+        _yb_hist_render
+    else
+        # Guardar la consulta ANTES de entrar a menuselect.
+        YB_HIST_QUERY="$BUFFER"
+        YB_HIST_ORIGINAL="$BUFFER"
+        YB_HIST_ARMED=1
+
+        zle down-line-or-select
+    fi
+}
+
+
+_yb_hist_left() {
+    if (( YB_HIST_ACTIVE )); then
+        (( YB_HIST_PAGE-- ))
+        YB_HIST_ROW=1
+        _yb_hist_render
+
+    elif (( YB_HIST_ARMED )) && [[ -n "$YB_HIST_QUERY" ]]; then
+        _yb_hist_start -1
+
+    else
+        zle backward-char
+    fi
+}
+
+
+_yb_hist_right() {
+    if (( YB_HIST_ACTIVE )); then
+        (( YB_HIST_PAGE++ ))
+        YB_HIST_ROW=1
+        _yb_hist_render
+
+    elif (( YB_HIST_ARMED )) && [[ -n "$YB_HIST_QUERY" ]]; then
+        _yb_hist_start 1
+
+    else
+        zle forward-char
+    fi
+}
+
+
+_yb_hist_accept() {
+    if (( YB_HIST_ACTIVE )); then
+        # Mantener selección en BUFFER, pero NO ejecutarla.
+        YB_HIST_ACTIVE=0
+        YB_HIST_ARMED=0
+        YB_HIST_QUERY=""
+        YB_HIST_ORIGINAL=""
+        POSTDISPLAY=""
+
+        zle redisplay
+    else
+        # Segundo Enter: ejecutar normalmente.
+        zle .accept-line
+    fi
+}
+
+
+_yb_hist_cancel() {
+    if (( YB_HIST_ACTIVE )); then
+        BUFFER="$YB_HIST_ORIGINAL"
+        CURSOR=${#BUFFER}
+
+        POSTDISPLAY=""
+        _yb_hist_reset_state
+
+        zle redisplay
+    else
+        zle .send-break
+    fi
+}
+
+
+# Widgets.
+zle -N yb-history-up     _yb_hist_up
+zle -N yb-history-down   _yb_hist_down
+zle -N yb-history-left   _yb_hist_left
+zle -N yb-history-right  _yb_hist_right
+zle -N yb-history-accept _yb_hist_accept
+zle -N yb-history-cancel _yb_hist_cancel

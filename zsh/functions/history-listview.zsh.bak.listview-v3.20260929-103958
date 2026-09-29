@@ -1,0 +1,416 @@
+#!/usr/bin/env zsh
+
+# History ListView v3
+# Complementa zsh-autocomplete sin modificar el paquete.
+#
+# Página 1 = lista automática de zsh-autocomplete.
+# Páginas 2..N = historial paginado de 8 elementos.
+
+autoload -Uz add-zsh-hook
+
+typeset -gi YB_HIST_PAGE_SIZE=8
+typeset -gi YB_HIST_ACTIVE=0
+typeset -gi YB_HIST_ARMED=0
+typeset -gi YB_HIST_PAGE=1
+typeset -gi YB_HIST_PAGES=1
+typeset -gi YB_HIST_ROW=1
+
+typeset -g YB_HIST_QUERY=""
+typeset -g YB_HIST_ORIGINAL=""
+
+typeset -ga YB_HIST_ITEMS=()
+
+
+# ------------------------------------------------------------
+# ESTADO
+# ------------------------------------------------------------
+
+_yb_hist_reset() {
+    YB_HIST_ACTIVE=0
+    YB_HIST_ARMED=0
+    YB_HIST_PAGE=1
+    YB_HIST_PAGES=1
+    YB_HIST_ROW=1
+
+    YB_HIST_QUERY=""
+    YB_HIST_ORIGINAL=""
+    YB_HIST_ITEMS=()
+
+    POSTDISPLAY=""
+}
+
+
+_yb_hist_precmd() {
+    _yb_hist_reset
+}
+
+add-zsh-hook precmd _yb_hist_precmd
+
+
+# ------------------------------------------------------------
+# RECOLECCIÓN
+# ------------------------------------------------------------
+
+_yb_hist_collect() {
+    emulate -L zsh
+
+    YB_HIST_ITEMS=()
+
+    [[ -n "$YB_HIST_QUERY" ]] || return 1
+
+    local output=""
+
+    output="$(
+        fc -lnr 1 2>/dev/null |
+        grep -iF -- "$YB_HIST_QUERY" |
+        awk '
+            !seen[$0]++ {
+                print
+                count++
+                if (count >= 400)
+                    exit
+            }
+        '
+    )"
+
+    [[ -n "$output" ]] || return 1
+
+    YB_HIST_ITEMS=( "${(@f)output}" )
+
+    local total=${#YB_HIST_ITEMS}
+
+    (( total > 0 )) || return 1
+
+    YB_HIST_PAGES=$(
+        echo $(( (total + YB_HIST_PAGE_SIZE - 1) / YB_HIST_PAGE_SIZE ))
+    )
+
+    (( YB_HIST_PAGES < 1 )) && YB_HIST_PAGES=1
+
+    return 0
+}
+
+
+# ------------------------------------------------------------
+# RENDER
+# ------------------------------------------------------------
+
+_yb_hist_render() {
+    emulate -L zsh
+
+    local total=${#YB_HIST_ITEMS}
+
+    (( total > 0 )) || {
+        _yb_hist_reset
+        zle redisplay
+        return
+    }
+
+    # Página circular
+    (( YB_HIST_PAGE < 1 )) &&
+        YB_HIST_PAGE=$YB_HIST_PAGES
+
+    (( YB_HIST_PAGE > YB_HIST_PAGES )) &&
+        YB_HIST_PAGE=1
+
+
+    local start=$(( (YB_HIST_PAGE - 1) * YB_HIST_PAGE_SIZE + 1 ))
+    local finish=$(( start + YB_HIST_PAGE_SIZE - 1 ))
+
+    (( finish > total )) && finish=$total
+
+    local count=$(( finish - start + 1 ))
+
+
+    # Selección circular
+    (( YB_HIST_ROW < 1 )) &&
+        YB_HIST_ROW=$count
+
+    (( YB_HIST_ROW > count )) &&
+        YB_HIST_ROW=1
+
+
+    local selected=$(( start + YB_HIST_ROW - 1 ))
+
+    BUFFER="${YB_HIST_ITEMS[$selected]}"
+    CURSOR=${#BUFFER}
+
+
+    # Quitar cualquier lista residual de zsh-autocomplete
+    zle -Rc
+
+
+    local msg=""
+    local i=0
+    local row=1
+    local mark=""
+    local text=""
+    local max_width=$(( COLUMNS - 10 ))
+
+    (( max_width < 30 )) && max_width=30
+
+
+    msg=$'\n'
+    msg+="Historial [${YB_HIST_PAGE}/${YB_HIST_PAGES}]"
+    msg+="  ${selected}/${total}"
+    msg+="  ←/→ página  ↑/↓ seleccionar"
+    msg+=$'\n'
+
+
+    for (( i = start; i <= finish; i++ )); do
+
+        text="${YB_HIST_ITEMS[$i]}"
+        text="${text//$'\t'/ }"
+
+        if (( ${#text} > max_width )); then
+            text="${text[1,$(( max_width - 1 ))]}…"
+        fi
+
+        if (( row == YB_HIST_ROW )); then
+            mark="❯"
+        else
+            mark=" "
+        fi
+
+        msg+="${mark} ${row}. ${text}"
+
+        (( i < finish )) && msg+=$'\n'
+
+        (( row++ ))
+    done
+
+
+    POSTDISPLAY="$msg"
+
+    zle redisplay
+}
+
+
+# ------------------------------------------------------------
+# ACTIVACIÓN
+# ------------------------------------------------------------
+
+_yb_hist_arm_up() {
+
+    YB_HIST_QUERY="$BUFFER"
+    YB_HIST_ORIGINAL="$BUFFER"
+    YB_HIST_ARMED=1
+
+    zle up-line-or-search
+}
+
+
+_yb_hist_arm_down() {
+
+    YB_HIST_QUERY="$BUFFER"
+    YB_HIST_ORIGINAL="$BUFFER"
+    YB_HIST_ARMED=1
+
+    zle down-line-or-select
+}
+
+
+_yb_hist_start_page() {
+
+    local direction="$1"
+
+    POSTDISPLAY=""
+
+    if ! _yb_hist_collect; then
+        # Nada encontrado: salir limpiamente.
+        _yb_hist_reset
+        zle redisplay
+        return
+    fi
+
+    YB_HIST_ACTIVE=1
+    YB_HIST_ARMED=0
+    YB_HIST_ROW=1
+
+    if (( direction > 0 )); then
+
+        # Página 1 ya fue la lista automática.
+        if (( YB_HIST_PAGES >= 2 )); then
+            YB_HIST_PAGE=2
+        else
+            YB_HIST_PAGE=1
+        fi
+
+    else
+
+        YB_HIST_PAGE=$YB_HIST_PAGES
+
+    fi
+
+    _yb_hist_render
+}
+
+
+_yb_hist_start_next() {
+    _yb_hist_start_page 1
+}
+
+
+_yb_hist_start_prev() {
+    _yb_hist_start_page -1
+}
+
+
+# ------------------------------------------------------------
+# NAVEGACIÓN DEL PAGER
+# ------------------------------------------------------------
+
+_yb_hist_up() {
+
+    if (( YB_HIST_ACTIVE )); then
+
+        (( YB_HIST_ROW-- ))
+        _yb_hist_render
+
+    else
+
+        _yb_hist_arm_up
+
+    fi
+}
+
+
+_yb_hist_down() {
+
+    if (( YB_HIST_ACTIVE )); then
+
+        (( YB_HIST_ROW++ ))
+        _yb_hist_render
+
+    else
+
+        _yb_hist_arm_down
+
+    fi
+}
+
+
+_yb_hist_left() {
+
+    if (( YB_HIST_ACTIVE )); then
+
+        (( YB_HIST_PAGE-- ))
+        YB_HIST_ROW=1
+
+        _yb_hist_render
+
+    else
+
+        zle backward-char
+
+    fi
+}
+
+
+_yb_hist_right() {
+
+    if (( YB_HIST_ACTIVE )); then
+
+        (( YB_HIST_PAGE++ ))
+        YB_HIST_ROW=1
+
+        _yb_hist_render
+
+    else
+
+        zle forward-char
+
+    fi
+}
+
+
+# ------------------------------------------------------------
+# ACCEPT / CANCEL
+# ------------------------------------------------------------
+
+_yb_hist_accept() {
+
+    if (( YB_HIST_ACTIVE )); then
+
+        # Dejar selección escrita pero NO ejecutar todavía.
+        YB_HIST_ACTIVE=0
+        YB_HIST_ARMED=0
+
+        YB_HIST_QUERY=""
+        YB_HIST_ORIGINAL=""
+
+        POSTDISPLAY=""
+
+        zle redisplay
+
+    else
+
+        zle .accept-line
+
+    fi
+}
+
+
+_yb_hist_cancel() {
+
+    if (( YB_HIST_ACTIVE )); then
+
+        BUFFER="$YB_HIST_ORIGINAL"
+        CURSOR=${#BUFFER}
+
+        _yb_hist_reset
+
+        zle redisplay
+
+    else
+
+        zle .send-break
+
+    fi
+}
+
+
+# ------------------------------------------------------------
+# TAB
+# ------------------------------------------------------------
+
+_yb_smart_tab() {
+
+    # Dentro de nuestro pager:
+    # Tab equivale a aceptar selección.
+    if (( YB_HIST_ACTIVE )); then
+
+        _yb_hist_accept
+        return
+
+    fi
+
+    # IMPORTANTE:
+    # Nuestro contexto automático normal es HISTORIAL.
+    #
+    # Para Tab queremos el completion tradicional de Zsh:
+    # archivos, carpetas, comandos, argumentos, etc.
+    #
+    # Llamamos al widget builtin directamente para que
+    # history-incremental-search-backward no interfiera.
+    zle .expand-or-complete
+}
+
+
+# ------------------------------------------------------------
+# WIDGETS
+# ------------------------------------------------------------
+
+zle -N yb-history-up         _yb_hist_up
+zle -N yb-history-down       _yb_hist_down
+
+zle -N yb-history-left       _yb_hist_left
+zle -N yb-history-right      _yb_hist_right
+
+zle -N yb-history-start-next _yb_hist_start_next
+zle -N yb-history-start-prev _yb_hist_start_prev
+
+zle -N yb-history-accept     _yb_hist_accept
+zle -N yb-history-cancel     _yb_hist_cancel
+
+zle -N yb-smart-tab          _yb_smart_tab

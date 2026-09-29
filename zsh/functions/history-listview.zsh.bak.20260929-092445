@@ -1,0 +1,240 @@
+#!/usr/bin/env zsh
+
+# Complemento de zsh-autocomplete:
+# paginación del historial en grupos de 8 mediante ZLE.
+
+typeset -gi YB_HIST_PAGE_SIZE=8
+typeset -gi YB_HIST_ACTIVE=0
+typeset -gi YB_HIST_PAGE=1
+typeset -gi YB_HIST_PAGES=1
+typeset -gi YB_HIST_ROW=1
+
+typeset -g YB_HIST_QUERY=""
+typeset -g YB_HIST_ORIGINAL=""
+
+typeset -ga YB_HIST_ITEMS=()
+
+_yb_hist_collect() {
+    emulate -L zsh
+
+    local output=""
+
+    # Historial reciente primero.
+    # - coincidencia literal, sin distinguir mayúsculas/minúsculas
+    # - duplicados eliminados
+    # - límite alto para evitar recorrer indefinidamente el HISTFILE
+    output="$(
+        fc -lnr 1 2>/dev/null |
+        grep -iF -- "$YB_HIST_QUERY" |
+        awk '!seen[$0]++ {
+            print
+            count++
+            if (count >= 400) exit
+        }'
+    )"
+
+    if [[ -n "$output" ]]; then
+        YB_HIST_ITEMS=( "${(@f)output}" )
+    else
+        YB_HIST_ITEMS=()
+    fi
+
+    local total=${#YB_HIST_ITEMS}
+
+    if (( total > 0 )); then
+        YB_HIST_PAGES=$(
+            echo $(( (total + YB_HIST_PAGE_SIZE - 1) / YB_HIST_PAGE_SIZE ))
+        )
+    else
+        YB_HIST_PAGES=1
+    fi
+}
+
+_yb_hist_render() {
+    emulate -L zsh
+
+    local total=${#YB_HIST_ITEMS}
+
+    if (( total == 0 )); then
+        YB_HIST_ACTIVE=0
+        POSTDISPLAY=$'\nHistorial: sin coincidencias'
+        zle redisplay
+        return
+    fi
+
+    (( YB_HIST_PAGE < 1 )) && YB_HIST_PAGE=$YB_HIST_PAGES
+    (( YB_HIST_PAGE > YB_HIST_PAGES )) && YB_HIST_PAGE=1
+
+    local start=$(( (YB_HIST_PAGE - 1) * YB_HIST_PAGE_SIZE + 1 ))
+    local finish=$(( start + YB_HIST_PAGE_SIZE - 1 ))
+
+    (( finish > total )) && finish=$total
+
+    local page_count=$(( finish - start + 1 ))
+
+    (( YB_HIST_ROW < 1 )) && YB_HIST_ROW=$page_count
+    (( YB_HIST_ROW > page_count )) && YB_HIST_ROW=1
+
+    local selected=$(( start + YB_HIST_ROW - 1 ))
+
+    BUFFER="${YB_HIST_ITEMS[$selected]}"
+    CURSOR=${#BUFFER}
+
+    local message=""
+    local i row mark display max_width
+
+    message=$'\n'
+    message+="Historial [${YB_HIST_PAGE}/${YB_HIST_PAGES}]"
+    message+="  ←/→ página · ↑/↓ seleccionar · Enter insertar · Ctrl+G cancelar"
+    message+=$'\n'
+
+    max_width=$(( COLUMNS - 8 ))
+    (( max_width < 30 )) && max_width=30
+
+    row=1
+
+    for (( i = start; i <= finish; i++ )); do
+        display="${YB_HIST_ITEMS[$i]}"
+        display="${display//$'\t'/ }"
+
+        if (( ${#display} > max_width )); then
+            display="${display[1,$(( max_width - 1 ))]}…"
+        fi
+
+        if (( row == YB_HIST_ROW )); then
+            mark="❯"
+        else
+            mark=" "
+        fi
+
+        message+="${mark} ${row}. ${display}"
+
+        if (( i < finish )); then
+            message+=$'\n'
+        fi
+
+        (( row++ ))
+    done
+
+    POSTDISPLAY="$message"
+    zle redisplay
+}
+
+_yb_hist_start() {
+    emulate -L zsh
+
+    local direction="$1"
+
+    # La consulta se guarda antes de entrar al menú nativo
+    # de zsh-autocomplete.
+    [[ -n "$YB_HIST_QUERY" ]] || YB_HIST_QUERY="$BUFFER"
+
+    YB_HIST_ORIGINAL="$YB_HIST_QUERY"
+
+    _yb_hist_collect
+
+    if (( ${#YB_HIST_ITEMS} == 0 )); then
+        POSTDISPLAY=$'\nHistorial: sin coincidencias'
+        zle redisplay
+        return
+    fi
+
+    YB_HIST_ACTIVE=1
+    YB_HIST_ROW=1
+
+    if (( direction > 0 )); then
+        if (( YB_HIST_PAGES > 1 )); then
+            YB_HIST_PAGE=2
+        else
+            YB_HIST_PAGE=1
+        fi
+    else
+        YB_HIST_PAGE=$YB_HIST_PAGES
+    fi
+
+    _yb_hist_render
+}
+
+_yb_hist_up() {
+    if (( YB_HIST_ACTIVE )); then
+        (( YB_HIST_ROW-- ))
+        _yb_hist_render
+    else
+        YB_HIST_QUERY="$BUFFER"
+        YB_HIST_ORIGINAL="$BUFFER"
+        zle up-line-or-search
+    fi
+}
+
+_yb_hist_down() {
+    if (( YB_HIST_ACTIVE )); then
+        (( YB_HIST_ROW++ ))
+        _yb_hist_render
+    else
+        YB_HIST_QUERY="$BUFFER"
+        YB_HIST_ORIGINAL="$BUFFER"
+        zle down-line-or-select
+    fi
+}
+
+_yb_hist_left() {
+    if (( YB_HIST_ACTIVE )); then
+        (( YB_HIST_PAGE-- ))
+        _yb_hist_render
+    else
+        zle backward-char
+    fi
+}
+
+_yb_hist_right() {
+    if (( YB_HIST_ACTIVE )); then
+        (( YB_HIST_PAGE++ ))
+        _yb_hist_render
+    else
+        zle forward-char
+    fi
+}
+
+_yb_hist_prev_from_menu() {
+    _yb_hist_start -1
+}
+
+_yb_hist_next_from_menu() {
+    _yb_hist_start 1
+}
+
+_yb_hist_accept() {
+    if (( YB_HIST_ACTIVE )); then
+        # Conservamos el comando seleccionado, pero no lo ejecutamos todavía.
+        # Otro Enter lo ejecutará normalmente.
+        YB_HIST_ACTIVE=0
+        POSTDISPLAY=""
+        zle redisplay
+    else
+        zle .accept-line
+    fi
+}
+
+_yb_hist_cancel() {
+    if (( YB_HIST_ACTIVE )); then
+        BUFFER="$YB_HIST_ORIGINAL"
+        CURSOR=${#BUFFER}
+
+        YB_HIST_ACTIVE=0
+        POSTDISPLAY=""
+
+        zle redisplay
+    else
+        zle .send-break
+    fi
+}
+
+# Widgets ZLE.
+zle -N yb-history-up             _yb_hist_up
+zle -N yb-history-down           _yb_hist_down
+zle -N yb-history-left           _yb_hist_left
+zle -N yb-history-right          _yb_hist_right
+zle -N yb-history-prev-page      _yb_hist_prev_from_menu
+zle -N yb-history-next-page      _yb_hist_next_from_menu
+zle -N yb-history-accept         _yb_hist_accept
+zle -N yb-history-cancel         _yb_hist_cancel

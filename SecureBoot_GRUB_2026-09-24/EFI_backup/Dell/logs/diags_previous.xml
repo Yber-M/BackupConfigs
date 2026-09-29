@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <SupportAssistPrebootDiagnosticLog>
+    <Schema>1.0.0</Schema>
+    <LogNumber>1</LogNumber>
+    <LogTimeStamp>08/22/2026 03:12:26</LogTimeStamp>
+    <ePSA_Data>
+      <Result>Abort</Result>
+      <ReturnCode>BOOT_F2</ReturnCode>
+      <DevicesTested>Disk,Memory</DevicesTested>
+      <ePSAFullVersion>ED.5.4.17</ePSAFullVersion>
+      <ePSAInvocationCount>3</ePSAInvocationCount>
+    </ePSA_Data>
+    <BIOS_Data>
+      <ErrorCategory>NO_BOOT</ErrorCategory>
+      <ErrorMessage><![CDATA[Operating System Loader has no signature. Incompatible with SecureBoot. All bootable devices failed Secure Boot verification.
+]]></ErrorMessage>
+      <Flags>SOS_AVAILABLE</Flags>
+      <SOS_Available>TRUE</SOS_Available>
+      <TimeOutSeconds>0</TimeOutSeconds>
+    </BIOS_Data>
+  </SupportAssistPrebootDiagnosticLog>

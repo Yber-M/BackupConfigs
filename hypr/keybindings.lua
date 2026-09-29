@@ -107,6 +107,7 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"
 
 ---- UTILITIES ----
 hl.bind(mainMod .. " + ALT + G", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/toggle-gamemode.sh"), { desc = "game mode" })
+hl.bind(mainMod .. " + ALT + B", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/toggle-acrylic.sh"), { desc = "toggle acrylic / solid" })
 hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd("hyprpicker -an"), { desc = "color picker" })
 hl.bind(mainMod .. " + K", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/keyboard-layout.sh"), { desc = "toggle keyboard layout" })
 

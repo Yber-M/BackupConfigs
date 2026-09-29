@@ -59,6 +59,44 @@ hl.config({
         },
     },
 
+    group = {
+        col = {
+            border_active = "rgba(bb9af7ff)",
+            border_inactive = "rgba(565f89cc)",
+            border_locked_active = "rgba(e0af68ff)",
+            border_locked_inactive = "rgba(565f89cc)",
+        },
+
+        groupbar = {
+            enabled = true,
+            render_titles = true,
+
+            font_size = 11,
+            height = 30,
+            text_padding = 10,
+
+            gradients = true,
+            gradient_rounding = 8,
+            rounding = 8,
+
+            gaps_in = 3,
+            gaps_out = 4,
+            indicator_height = 3,
+
+            blur = true,
+
+            text_color = "rgba(c0caf5ff)",
+            text_color_inactive = "rgba(a9b1d6ff)",
+
+            col = {
+                active = "rgba(414868ee)",
+                inactive = "rgba(24283bcc)",
+                locked_active = "rgba(e0af68dd)",
+                locked_inactive = "rgba(3b4261cc)",
+            },
+        },
+    },
+
     dwindle = { preserve_split = true },
     animations = { enabled = true },
 })

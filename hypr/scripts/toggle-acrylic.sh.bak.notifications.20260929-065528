@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+STATE="/tmp/hypr-acrylic-solid"
+APPLY="$HOME/.config/hypr/scripts/apply-visual-mode.sh"
+
+if [[ -f "$STATE" ]]; then
+    rm -f "$STATE"
+    "$APPLY"
+    notify-send "Acrílico ON" "Transparencia y desenfoque restaurados"
+else
+    touch "$STATE"
+    "$APPLY"
+    notify-send "Modo sólido ON" "Transparencia y desenfoque desactivados"
+fi

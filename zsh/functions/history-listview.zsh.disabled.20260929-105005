@@ -1,0 +1,550 @@
+#!/usr/bin/env zsh
+
+# ============================================================
+# History ListView V4
+#
+# Complementa zsh-autocomplete:
+# - zsh-autocomplete muestra sugerencias en tiempo real.
+# - ↓ / ↑ abre nuestro selector paginado.
+# - 8 resultados por página.
+# - ← / → cambia de página.
+# - ↑ / ↓ cambia selección.
+# - Tab / Enter insertan sin ejecutar.
+# ============================================================
+
+autoload -Uz add-zsh-hook
+
+typeset -gi YB_HIST_PAGE_SIZE=8
+typeset -gi YB_HIST_ACTIVE=0
+typeset -gi YB_HIST_PAGE=1
+typeset -gi YB_HIST_PAGES=1
+typeset -gi YB_HIST_ROW=1
+
+typeset -g YB_HIST_QUERY=""
+typeset -g YB_HIST_ORIGINAL=""
+
+typeset -ga YB_HIST_ITEMS=()
+
+
+# Mientras nuestros widgets actúan, zsh-autocomplete no debe
+# repintar su lista encima de nuestro ListView.
+zstyle ':autocomplete:yb-history-*:' ignore yes
+zstyle ':autocomplete:yb-smart-tab:' ignore yes
+
+
+# ------------------------------------------------------------
+# RESET
+# ------------------------------------------------------------
+
+_yb_hist_reset() {
+    YB_HIST_ACTIVE=0
+    YB_HIST_PAGE=1
+    YB_HIST_PAGES=1
+    YB_HIST_ROW=1
+
+    YB_HIST_QUERY=""
+    YB_HIST_ORIGINAL=""
+    YB_HIST_ITEMS=()
+
+    POSTDISPLAY=""
+}
+
+
+_yb_hist_precmd() {
+    _yb_hist_reset
+}
+
+add-zsh-hook precmd _yb_hist_precmd
+
+
+# ------------------------------------------------------------
+# HISTORIAL
+# ------------------------------------------------------------
+
+_yb_hist_collect() {
+    emulate -L zsh
+
+    YB_HIST_ITEMS=()
+
+    [[ -n "$YB_HIST_QUERY" ]] || return 1
+
+    local output=""
+
+    # Historial más reciente primero.
+    #
+    # Se comporta al estilo PredictionView:
+    # el comando debe comenzar con lo escrito.
+    #
+    # - case insensitive
+    # - sin duplicados
+    # - máximo 400 coincidencias
+
+    output="$(
+        fc -lnr 1 2>/dev/null |
+        awk -v query="$YB_HIST_QUERY" '
+            BEGIN {
+                q = tolower(query)
+            }
+
+            {
+                line = $0
+
+                # fc puede dejar indentación.
+                sub(/^[[:space:]]+/, "", line)
+
+                lower = tolower(line)
+
+                if (
+                    index(lower, q) == 1 &&
+                    !seen[line]++
+                ) {
+                    print line
+                    count++
+
+                    if (count >= 400)
+                        exit
+                }
+            }
+        '
+    )"
+
+    [[ -n "$output" ]] || return 1
+
+    YB_HIST_ITEMS=( "${(@f)output}" )
+
+    local total=${#YB_HIST_ITEMS}
+
+    (( total > 0 )) || return 1
+
+    YB_HIST_PAGES=$(
+        echo $(
+            (
+                total
+                + YB_HIST_PAGE_SIZE
+                - 1
+            )
+            / YB_HIST_PAGE_SIZE
+        )
+    )
+
+    (( YB_HIST_PAGES < 1 )) &&
+        YB_HIST_PAGES=1
+
+    return 0
+}
+
+
+# ------------------------------------------------------------
+# DIBUJAR
+# ------------------------------------------------------------
+
+_yb_hist_render() {
+    emulate -L zsh
+
+    local total=${#YB_HIST_ITEMS}
+
+    (( total > 0 )) || {
+        _yb_hist_reset
+        zle redisplay
+        return
+    }
+
+
+    # Página circular.
+    (( YB_HIST_PAGE < 1 )) &&
+        YB_HIST_PAGE=$YB_HIST_PAGES
+
+    (( YB_HIST_PAGE > YB_HIST_PAGES )) &&
+        YB_HIST_PAGE=1
+
+
+    local start=$(
+        (
+            (YB_HIST_PAGE - 1)
+            * YB_HIST_PAGE_SIZE
+        )
+        + 1
+    )
+
+    local finish=$(
+        start
+        + YB_HIST_PAGE_SIZE
+        - 1
+    )
+
+    (( finish > total )) &&
+        finish=$total
+
+
+    local count=$(
+        finish
+        - start
+        + 1
+    )
+
+
+    # Selección circular.
+    (( YB_HIST_ROW < 1 )) &&
+        YB_HIST_ROW=$count
+
+    (( YB_HIST_ROW > count )) &&
+        YB_HIST_ROW=1
+
+
+    local selected=$(
+        start
+        + YB_HIST_ROW
+        - 1
+    )
+
+
+    # El comando seleccionado se refleja arriba.
+    BUFFER="${YB_HIST_ITEMS[$selected]}"
+    CURSOR=${#BUFFER}
+
+
+    # Limpiar lista automática de zsh-autocomplete.
+    zle -Rc
+
+
+    local msg=""
+    local i=0
+    local row=1
+    local mark=""
+    local text=""
+
+    local max_width=$(( COLUMNS - 12 ))
+
+    (( max_width < 30 )) &&
+        max_width=30
+
+
+    # Encabezado.
+    msg=$'\n'
+    msg+="Historial [${YB_HIST_PAGE}/${YB_HIST_PAGES}]"
+    msg+="  ·  ${selected}/${total}"
+    msg+="  ·  ←/→ página"
+    msg+="  ·  ↑/↓ seleccionar"
+    msg+=$'\n'
+
+
+    # Resultados.
+    for (( i = start; i <= finish; i++ )); do
+
+        text="${YB_HIST_ITEMS[$i]}"
+        text="${text//$'\t'/ }"
+
+
+        if (( ${#text} > max_width )); then
+
+            text="${
+                text[1,$(( max_width - 1 ))]
+            }…"
+
+        fi
+
+
+        if (( row == YB_HIST_ROW )); then
+            mark="❯"
+        else
+            mark=" "
+        fi
+
+
+        msg+="${mark} ${row}. ${text}"
+
+
+        (( i < finish )) &&
+            msg+=$'\n'
+
+
+        (( row++ ))
+    done
+
+
+    POSTDISPLAY="$msg"
+
+    zle redisplay
+}
+
+
+# ------------------------------------------------------------
+# ABRIR LISTVIEW
+# ------------------------------------------------------------
+
+_yb_hist_open() {
+    emulate -L zsh
+
+    local initial_row="$1"
+
+    # Si ya estamos dentro, no volvemos a recopilar.
+    if (( YB_HIST_ACTIVE )); then
+        return
+    fi
+
+
+    YB_HIST_QUERY="$BUFFER"
+    YB_HIST_ORIGINAL="$BUFFER"
+
+
+    # Sin texto: dejamos el comportamiento habitual de Zsh.
+    [[ -n "$YB_HIST_QUERY" ]] || return 1
+
+
+    if ! _yb_hist_collect; then
+
+        # Importante:
+        # NO dejamos ningún mensaje "sin coincidencias".
+        _yb_hist_reset
+
+        zle -Rc
+        zle redisplay
+
+        return 1
+    fi
+
+
+    YB_HIST_ACTIVE=1
+    YB_HIST_PAGE=1
+
+
+    if [[ "$initial_row" == "last" ]]; then
+
+        local first_count=$YB_HIST_PAGE_SIZE
+
+        (( ${#YB_HIST_ITEMS} < first_count )) &&
+            first_count=${#YB_HIST_ITEMS}
+
+        YB_HIST_ROW=$first_count
+
+    else
+
+        YB_HIST_ROW=1
+
+    fi
+
+
+    _yb_hist_render
+
+    return 0
+}
+
+
+# ------------------------------------------------------------
+# ↑
+# ------------------------------------------------------------
+
+_yb_hist_up() {
+
+    if (( YB_HIST_ACTIVE )); then
+
+        (( YB_HIST_ROW-- ))
+        _yb_hist_render
+
+        return
+    fi
+
+
+    if ! _yb_hist_open last; then
+
+        # Fallback normal cuando no hay sugerencias.
+        zle up-line-or-search
+
+    fi
+}
+
+
+# ------------------------------------------------------------
+# ↓
+# ------------------------------------------------------------
+
+_yb_hist_down() {
+
+    if (( YB_HIST_ACTIVE )); then
+
+        (( YB_HIST_ROW++ ))
+        _yb_hist_render
+
+        return
+    fi
+
+
+    if ! _yb_hist_open first; then
+
+        # Fallback normal.
+        zle down-line-or-select
+
+    fi
+}
+
+
+# ------------------------------------------------------------
+# ←
+# ------------------------------------------------------------
+
+_yb_hist_left() {
+
+    if (( YB_HIST_ACTIVE )); then
+
+        (( YB_HIST_PAGE-- ))
+
+        # Primera fila de la nueva página.
+        YB_HIST_ROW=1
+
+        _yb_hist_render
+
+    else
+
+        # Fuera del ListView:
+        # comportamiento normal del cursor.
+        zle .backward-char
+
+    fi
+}
+
+
+# ------------------------------------------------------------
+# →
+# ------------------------------------------------------------
+
+_yb_hist_right() {
+
+    if (( YB_HIST_ACTIVE )); then
+
+        (( YB_HIST_PAGE++ ))
+
+        YB_HIST_ROW=1
+
+        _yb_hist_render
+
+    else
+
+        zle .forward-char
+
+    fi
+}
+
+
+# ------------------------------------------------------------
+# INSERTAR
+# ------------------------------------------------------------
+
+_yb_hist_insert() {
+
+    if (( YB_HIST_ACTIVE )); then
+
+        # BUFFER ya contiene la selección.
+        #
+        # Cerramos el selector pero NO ejecutamos.
+        YB_HIST_ACTIVE=0
+
+        YB_HIST_QUERY=""
+        YB_HIST_ORIGINAL=""
+        YB_HIST_ITEMS=()
+
+        POSTDISPLAY=""
+
+        zle -Rc
+        zle redisplay
+
+        return
+    fi
+}
+
+
+# ------------------------------------------------------------
+# ENTER
+# ------------------------------------------------------------
+
+_yb_hist_enter() {
+
+    if (( YB_HIST_ACTIVE )); then
+
+        _yb_hist_insert
+
+    else
+
+        zle .accept-line
+
+    fi
+}
+
+
+# ------------------------------------------------------------
+# CANCELAR
+# ------------------------------------------------------------
+
+_yb_hist_cancel() {
+
+    if (( YB_HIST_ACTIVE )); then
+
+        BUFFER="$YB_HIST_ORIGINAL"
+        CURSOR=${#BUFFER}
+
+        _yb_hist_reset
+
+        zle -Rc
+        zle redisplay
+
+    else
+
+        zle .send-break
+
+    fi
+}
+
+
+# ------------------------------------------------------------
+# TAB NORMAL
+# ------------------------------------------------------------
+
+_yb_smart_tab() {
+
+    # Dentro del ListView:
+    # Tab inserta la selección.
+    if (( YB_HIST_ACTIVE )); then
+
+        _yb_hist_insert
+        return
+
+    fi
+
+
+    # Nuestra sesión normalmente está en:
+    #
+    # history-incremental-search-backward
+    #
+    # Para TAB necesitamos quitar temporalmente ese contexto
+    # y ejecutar el complete-word REAL de zsh-autocomplete.
+
+    local saved_context="${curcontext-}"
+
+
+    # Sin contexto de historial.
+    typeset -g curcontext=""
+
+
+    # complete-word pertenece a zsh-autocomplete y,
+    # sin curcontext de historial, hace completion normal.
+    zle complete-word
+
+
+    # Restaurar el contexto predictivo.
+    typeset -g curcontext="$saved_context"
+}
+
+
+# ------------------------------------------------------------
+# WIDGETS
+# ------------------------------------------------------------
+
+zle -N yb-history-up      _yb_hist_up
+zle -N yb-history-down    _yb_hist_down
+
+zle -N yb-history-left    _yb_hist_left
+zle -N yb-history-right   _yb_hist_right
+
+zle -N yb-history-enter   _yb_hist_enter
+zle -N yb-history-cancel  _yb_hist_cancel
+
+zle -N yb-smart-tab       _yb_smart_tab

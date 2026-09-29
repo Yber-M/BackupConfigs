@@ -1,0 +1,27 @@
+#!/usr/bin/env zsh
+
+# TAB debe completar exclusivamente el contenido actual del BUFFER.
+# Nunca debe seleccionar una predicción del historial de zsh-autocomplete.
+
+_yb_smart_tab() {
+    local saved_context="${curcontext-}"
+
+    # Quitar la lista predictiva que zsh-autocomplete esté mostrando.
+    zle -Rc
+
+    # Salir temporalmente del contexto automático de historial.
+    typeset -g curcontext=""
+
+    # Usar el widget ORIGINAL de Zsh.
+    #
+    # El punto inicial es importante:
+    # .expand-or-complete = widget builtin/original,
+    # no el widget envuelto por zsh-autocomplete.
+    zle .expand-or-complete
+
+    # Recuperar el contexto predictivo para seguir mostrando
+    # sugerencias mientras escribimos normalmente.
+    typeset -g curcontext="$saved_context"
+}
+
+zle -N yb-smart-tab _yb_smart_tab

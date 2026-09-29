@@ -1,0 +1,8 @@
+# /dev/nvme0n1p7 LABEL=archroot
+UUID=46176a55-480f-4e71-b8b3-49a9eeddfa8f	/         	ext4      	rw,relatime	0 1
+
+# /dev/nvme0n1p1
+UUID=8459-183C      	/boot/efi 	vfat      	rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro	0 2
+
+#UUID=c0f9ece2-564d-4905-ab9b-9b945e2e05d6 /home/yb-m/Workspace ext4 defaults,noatime 0 2
+/swapfile none swap defaults 0 0
