@@ -6,3 +6,8 @@ dist/copyq/
 
 # CopyQ puede contener secretos del portapapeles
 /copyq/
+/waybar/
+/zsh/.zsh_history*
+/zsh/.zcompdump*
+/zsh-before-remove-hyde-*/zsh/.zsh_history*
+/zsh-before-remove-hyde-*/zsh/.zcompdump*
