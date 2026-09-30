@@ -11,3 +11,5 @@ dist/copyq/
 /zsh/.zcompdump*
 /zsh-before-remove-hyde-*/zsh/.zsh_history*
 /zsh-before-remove-hyde-*/zsh/.zcompdump*
+.zsh_history*
+.zcompdump*
