@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-exec /usr/bin/discord \
-  --disable-features=VaapiVideoEncoder \
-  --disable-gpu-memory-buffer-video-frames \
-  "$@"

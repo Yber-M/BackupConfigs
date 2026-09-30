@@ -1,13 +1,4 @@
-# Add user configurations here
-# For HyDE to not touch your beloved configurations,
-# we added a config file for you to customize HyDE before loading zshrc
-# Edit $ZDOTDIR/.user.zsh to customize HyDE before loading zshrc
-
-#  Plugins 
-# oh-my-zsh plugins are loaded  in $ZDOTDIR/.user.zsh file, see the file for more information
-
-#  Aliases 
-# Override aliases here in '$ZDOTDIR/.zshrc' (already set in .zshenv)
+# Configuración personal de zsh. Se carga al final de conf.d/10-shell.zsh.
 
 # # Helpful aliases
 alias c='clear'                                                        # clear terminal
@@ -16,12 +7,6 @@ alias ls='eza --icons=auto'                                         # short list
 alias ll='eza -lha --icons=auto --sort=name --group-directories-first' # long list all
 alias ld='eza -lhD --icons=auto'                                       # long list dirs
 # alias lt='eza --icons=auto --tree'                                     # list folder as tree
-# alias un='$aurhelper -Rns'                                             # uninstall package
-# alias up='$aurhelper -Syu'                                             # update system/package/aur
-# alias pl='$aurhelper -Qs'                                              # list installed package
-# alias pa='$aurhelper -Ss'                                              # list available package
-# alias pc='$aurhelper -Sc'                                              # remove unused cache
-# alias po='$aurhelper -Qtdq | $aurhelper -Rns -'                        # remove unused packages, also try > $aurhelper -Qqd | $aurhelper -Rsu --print -
 # alias vc='code'                                                        # gui code editor
 alias fastfetch='~/.local/bin/random-fastfetch.sh'
 
