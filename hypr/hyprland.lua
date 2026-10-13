@@ -2,9 +2,9 @@
 
 ---- MONITORES ----
 hl.monitor({ output = "desc:Samsung Electric Company LS32AG55x HNTTC00172",
-             mode = "2560x1440@144.0", position = "1600x0", scale = 1.0 })
+             mode = "2560x1440@144.0", position = "0x0", scale = 1.0 })
 hl.monitor({ output = "desc:LG Display 0x07A3",
-             mode = "2560x1600@240.0", position = "0x440", scale = 1.6 })
+             mode = "2560x1600@240.0", position = "2560x440", scale = 1.6 })
 
 ---- WORKSPACES / MONITORES ----
 local samsung = "desc:Samsung Electric Company LS32AG55x HNTTC00172"
